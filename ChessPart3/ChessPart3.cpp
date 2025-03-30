@@ -14,7 +14,6 @@
 #include <sstream>
 #include <cstdlib>
 #include <fstream>
-#include <enet/enet.h>
 #include "TextBox.h"
 
 sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height), "CHESS GAME", sf::Style::Default);
