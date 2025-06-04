@@ -145,5 +145,7 @@ public:
 	std::pair<PieceType,PieceColor> getTypeOfPos(std::pair<int, int> pos);
 
 	void reset();
+
+	bool checkInPath(int y, int startX, int endX, PieceType type, PieceColor color)
 };
 
