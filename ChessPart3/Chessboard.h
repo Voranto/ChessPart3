@@ -146,6 +146,12 @@ public:
 
 	void reset();
 
-	bool checkInPath(int y, int startX, int endX, PieceType type, PieceColor color)
+	bool checkInPath(int y, int startX, int endX, PieceType type, PieceColor color);
+
+	uint64_t bitAt(int idx);
+
+	bool bitInBoard(uint64_t board, int idx);
+
+	bool noBitInBoard(uint64_t board, int idx);
 };
 

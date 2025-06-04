@@ -297,7 +297,7 @@ void Chessboard::calculateKnightMoves(PieceColor color, bool calculateExtended) 
 
 					newIdx = this->convertGridCoords(std::make_pair(newX, newY));
 
-					if ((uint64_t)(combinedSameColorBoard & (1ULL << 63 - newIdx)) == 0) {
+					if (this->noBitInBoard(combinedSameColorBoard,newIdx)) {
 						moveToAdd = Move(PieceType(Knight), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
 						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { continue; }
@@ -366,8 +366,8 @@ void Chessboard::calculatePawnMoves(PieceColor color, bool calculateExtended) {
 
 			//Two squares forward
 			newIdx = this->convertGridCoords(std::make_pair(x, y + 2 * dy));
-			if (y == startPawnValue and (uint64_t)((combinedSameColorBoard | combinedOppositeColorBoard) & (1ULL << 64 - newIdx - 1)) == 0 &&
-				(uint64_t)((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx + 8 * dy)) == 0) {
+			if (y == startPawnValue and this->noBitInBoard(combinedSameColorBoard |combinedOppositeColorBoard, newIdx)&&
+				this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx- 8*dy)) {
 				moveToAdd = Move(PieceType(Pawn), PieceColor(color), std::make_pair(x, y), std::make_pair(x, y + 2 * dy));
 				if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
 					if (color == PieceColor(white)) { this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd); }
@@ -377,7 +377,7 @@ void Chessboard::calculatePawnMoves(PieceColor color, bool calculateExtended) {
 
 			//One Square forward
 			newIdx = this->convertGridCoords(std::make_pair(x, y + 1 * dy));
-			if ((uint64_t)((combinedSameColorBoard | combinedOppositeColorBoard) & (1ULL << 64 - newIdx - 1)) == 0 ) {
+			if (this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx)) {
 				moveToAdd = Move(PieceType(Pawn), PieceColor(color), std::make_pair(x, y), std::make_pair(x, y + 1 * dy));
 				if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
 
@@ -407,7 +407,7 @@ void Chessboard::calculatePawnMoves(PieceColor color, bool calculateExtended) {
 
 
 				newIdx = this->convertGridCoords(std::make_pair(x + diag, y + 1 * dy));
-				if ((uint64_t)(combinedOppositeColorBoard & (1ULL << 64 - newIdx - 1)) != 0) {
+				if (this->bitInBoard( combinedOppositeColorBoard, newIdx)) {
 					moveToAdd = Move(PieceType(Pawn), PieceColor(color), std::make_pair(x, y), std::make_pair(x + diag, y + 1 * dy));
 					moveToAdd.eats = this->eats(moveToAdd);
 
@@ -503,7 +503,7 @@ void Chessboard::calculateBishopMoves(PieceColor color, bool calculateExtended) 
 					newIdx = this->convertGridCoords(std::make_pair(newX, newY));
 
 					//Check bounds and that it doesnt collide with same colored piece
-					if ((uint64_t)(combinedSameColorBoard & (1ULL << 64 - newIdx - 1)) == 0
+					if (this->noBitInBoard(combinedSameColorBoard,newIdx)
 						&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 						moveToAdd = Move(PieceType(Bishop), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
@@ -515,7 +515,7 @@ void Chessboard::calculateBishopMoves(PieceColor color, bool calculateExtended) 
 						}
 						else { this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd); }
 					}
-					if ((uint64_t)(combinedOppositeColorBoard & (1ULL << 64 - newIdx - 1)) != 0 || 0 > newX || newX > 7 || 0 > newY || newY > 7) { break; }
+					if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) { break; }
 					p++;
 				}
 			}
@@ -587,7 +587,7 @@ void Chessboard::calculateRookMoves(PieceColor color, bool calculateExtended) {
 					newIdx = this->convertGridCoords(std::make_pair(newX, newY));
 
 					//Check bounds and that it doesnt collide with same colored piece
-					if (!(combinedSameColorBoard & (1ULL << 64 - newIdx - 1))
+					if (this->noBitInBoard(combinedSameColorBoard,newIdx)
 						&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 						moveToAdd = Move(PieceType(Rook), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
@@ -596,9 +596,10 @@ void Chessboard::calculateRookMoves(PieceColor color, bool calculateExtended) {
 						if (color == PieceColor(white)) {
 							this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
 						}
-						else { this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd); }
+						else {  this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd); }
 					}
-					if ((combinedOppositeColorBoard & (1ULL << 64 - newIdx - 1)) || 0 > newX || newX >= 8 || 0 > newY || newY >= 8) { break; }				p += 1;
+					if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) { break; }
+					p += 1;
 				}
 			}
 
@@ -672,7 +673,7 @@ void Chessboard::calculateQueenMoves(PieceColor color, bool calculateExtended) {
 					newIdx = this->convertGridCoords(std::make_pair(newX, newY));
 
 					//Check bounds and that it doesnt collide with same colored piece
-					if (!(combinedSameColorBoard & (1ULL << 64 - newIdx - 1))
+					if (this->noBitInBoard(combinedSameColorBoard,newIdx)
 						&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 						moveToAdd = Move(PieceType(Queen), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
@@ -683,7 +684,7 @@ void Chessboard::calculateQueenMoves(PieceColor color, bool calculateExtended) {
 						}
 						else { this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd); }
 					}
-					if ((combinedOppositeColorBoard & (1ULL << 64 - newIdx - 1))) { break; }
+					if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) { break; }
 					p++;
 				}
 			}
@@ -745,7 +746,7 @@ void Chessboard::calculateKingMoves(PieceColor color, bool calculateExtended) {
 				newIdx = this->convertGridCoords(std::make_pair(newX, newY));
 
 				//Check bounds and that it doesnt collide with same colored piece
-				if (!(combinedSameColorBoard & (1ULL << 64 - newIdx - 1))
+				if (this->noBitInBoard(combinedSameColorBoard,newIdx)
 					&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 					moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 					moveToAdd.eats = this->eats(moveToAdd);
@@ -763,24 +764,24 @@ void Chessboard::calculateKingMoves(PieceColor color, bool calculateExtended) {
 				if (color == white) {
 					newIdx = this->convertGridCoords(std::make_pair(x + 2, y));
 					if (x == 4 && y == 7 && this->whiteKingCastling &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx)) &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx + 1))) {
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx) &&
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx-1)) {
 						Move moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(x + 2, y));
 						if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
-							if (this->checkInPath(y, x, x + 2, King, white)) {
+							if (!this->checkInPath(y, x, x + 2, King, white)) {
 								this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
 							}
 						}
 					}
 					newIdx = this->convertGridCoords(std::make_pair(x - 3, y));
 					if (x == 4 && y == 7 && this->whiteQueenCastling &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx)) &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx - 1)))
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx) &&
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx + 1))
 					{
 						Move moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(x - 2, y));
 
 						if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
-							if (this->checkInPath(y, x, x -2, King, white)) {
+							if (!this->checkInPath(y, x, x -2, King, white)) {
 								this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
 							}
 						}
@@ -789,24 +790,24 @@ void Chessboard::calculateKingMoves(PieceColor color, bool calculateExtended) {
 				else {
 					newIdx = this->convertGridCoords(std::make_pair(x + 2, y));
 					if (x == 4 && y == 0 && this->blackKingCastling &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx)) &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx + 1))) {
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx) &&
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx - 1)) {
 						Move moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(x + 2, y));
 
 						if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
-							if (this->checkInPath(y, x, x + 2, King, black)) {
+							if (!this->checkInPath(y, x, x + 2, King, black)) {
 								this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd);
 							}
 						}
 					}
 					newIdx = this->convertGridCoords(std::make_pair(x - 3, y));
 					if (x == 4 && y == 0 && this->blackQueenCastling &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx)) &&
-						!((combinedOppositeColorBoard | combinedSameColorBoard) & (1ULL << 63 - newIdx - 1))) {
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx) &&
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx + 1)) {
 						Move moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(x - 2, y));
 
 						if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
-							if (this->checkInPath(y, x, x - 2, King, black)) {
+							if (!this->checkInPath(y, x, x - 2, King, black)) {
 								this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd);
 							}
 						}
@@ -818,7 +819,7 @@ void Chessboard::calculateKingMoves(PieceColor color, bool calculateExtended) {
 }
 
 bool Chessboard::checkInPath(int y, int startX, int endX, PieceType type, PieceColor color){
-	if (startX < endX) {
+	if (startX <= endX) {
 		for (int i = startX; i < endX; i++) {
 			Move moveToCheck(type, color, std::make_pair(startX, y), std::make_pair(i, y));
 			if (this->wouldMoveCauseCheck(moveToCheck)) {
@@ -1077,6 +1078,18 @@ bool Chessboard::wouldMoveCauseCheck(Move& move) {
 
 	this->undoMove(move);
 	return false;
+}
+
+uint64_t Chessboard::bitAt(int idx) {
+	return (uint64_t)(1ULL << (63 - idx));
+}
+
+bool Chessboard::bitInBoard(uint64_t board, int idx) {
+	return ((board & this->bitAt(idx)) != 0);
+}
+
+bool Chessboard::noBitInBoard(uint64_t board, int idx) {
+	return ((board & this->bitAt(idx)) == 0);
 }
 
 std::pair<int, int> Chessboard::getKingPosition(PieceColor color) {
