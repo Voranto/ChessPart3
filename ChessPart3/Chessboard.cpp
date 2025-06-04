@@ -803,7 +803,7 @@ void Chessboard::calculateKingMoves(PieceColor color, bool calculateExtended) {
 					newIdx = this->convertGridCoords(std::make_pair(x - 3, y));
 					if (x == 4 && y == 0 && this->blackQueenCastling &&
 						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx) &&
-						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx + 1)) {
+						this->noBitInBoard(combinedSameColorBoard | combinedOppositeColorBoard, newIdx + 1)) {   
 						Move moveToAdd = Move(PieceType(King), PieceColor(color), std::make_pair(x, y), std::make_pair(x - 2, y));
 
 						if (!calculateExtended || !this->wouldMoveCauseCheck(moveToAdd)) {
