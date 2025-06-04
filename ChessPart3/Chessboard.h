@@ -10,7 +10,27 @@
 #include <set>
 #include "Piece.h"
 #include <map>
+#include <array>
 
+
+const size_t MAX_MOVES = 100;
+struct GameState {
+	std::optional<std::pair<int, int>> enPassantTarget;
+
+	std::array <Move, MAX_MOVES>  whiteMoves;
+	std::array <Move, MAX_MOVES>  blackMoves;
+	int whiteMovesCount = 0;
+	int blackMovesCount = 0;
+
+
+	bool whiteKingCastling;
+	bool whiteQueenCastling;
+	bool blackKingCastling;
+	bool blackQueenCastling;
+
+	int halfmoveClock;
+	// anything else needed to fully restore the board state
+};
 #pragma once
 class Chessboard
 {
@@ -40,18 +60,19 @@ public:
 
 	std::optional<std::pair<int,int>> enPassantSquare;
 
-	std::optional<std::pair<int, int>> oldEnPassantSquare;
 
 	bool whiteKingCastling;
 	bool whiteQueenCastling;
 	bool blackKingCastling;
 	bool blackQueenCastling;
 
-	std::vector<Move> whiteMoves;
-	std::vector<Move> blackMoves;
+	std::vector<GameState> history;
 
-	std::vector<Move> oldWhiteMoves;
-	std::vector<Move> oldBlackMoves;
+
+	std::array <Move, MAX_MOVES>  whiteMoves;
+	std::array <Move, MAX_MOVES>  blackMoves;
+	int whiteMovesCount = 0;
+	int blackMovesCount = 0;
 
 	Chessboard(std::string FEN);
 	Chessboard();
@@ -100,6 +121,8 @@ public:
 
 	bool wouldMoveCauseCheck(Move& move);
 
+	bool isInCheck(PieceColor color);
+
 	std::pair<int, int> getKingPosition(PieceColor color);
 
 	std::map<PieceType, int> getMaterial(PieceColor color);
@@ -116,12 +139,11 @@ public:
 
 	int countMoves(int depth);
 
-	void storeOldMoves();
 
-	void restoreOldMoves();
+	Move stringToMove(std::string move);
 
-	void storeEnPassantSquare();
+	std::pair<PieceType,PieceColor> getTypeOfPos(std::pair<int, int> pos);
 
-	void restoreEnPassantSquare();
+	void reset();
 };
 

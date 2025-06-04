@@ -1,5 +1,6 @@
 #include "MultiplayerChessGUI.h"
 #include "ChessGUI.h"
+#include <array>
 
 MultiplayerChessGUI::MultiplayerChessGUI(PieceColor color, Chessboard board) :ChessGUI(GUI_SCREENS(MULTIPLAYER_JOIN), board) {
 	this->clientColor = color;
@@ -424,15 +425,20 @@ void MultiplayerChessGUI::drawSelectedPieceSquare(sf::RenderWindow& window, sf::
 void MultiplayerChessGUI::drawSelectedPiecePossibilities(int clickEvent, sf::RenderWindow& window, sf::Vector2i boardOffset) {
 	if (this->selectedPiece.pos == std::make_pair(-1, -1)) { return; }
 
-	std::vector<Move> movesToCompare;
+	std::array<Move,MAX_MOVES> movesToCompare;
+	int moveCount;
 	if (this->clientColor == white) {
 		movesToCompare = this->chessboard.whiteMoves;
+		moveCount = this->chessboard.whiteMovesCount;
 	}
 	else {
 		movesToCompare = this->chessboard.blackMoves;
+		moveCount = this->chessboard.blackMovesCount;
 	}
 	sf::Vector2f circlePos;
-	for (const Move& move : movesToCompare) {
+	Move move;
+	for (size_t i = 0; i < moveCount; i++) {
+		move = movesToCompare[i];
 		if (move.from == this->selectedPiece.pos) {
 			std::pair<int, int> gridPos = this->convertCoordsByColor(move.to);
 			circlePos = sf::Vector2f(std::get<0>(gridPos) * this->squareSize, std::get<1>(gridPos) * this->squareSize);

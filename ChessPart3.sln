@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChessPart3", "ChessPart3\Ch
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2752777C-8599-439B-ADE5-89F0CDE7B370}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChessPart3_Tests", "ChessPart3_Tests\ChessPart3_Tests.vcxproj", "{59FDE67A-AB1E-41A3-A270-A2E208FE893B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -23,6 +25,14 @@ Global
 		{5FFB804A-684A-4E71-AC86-224A7045BB94}.Release|x64.Build.0 = Release|x64
 		{5FFB804A-684A-4E71-AC86-224A7045BB94}.Release|x86.ActiveCfg = Release|Win32
 		{5FFB804A-684A-4E71-AC86-224A7045BB94}.Release|x86.Build.0 = Release|Win32
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Debug|x64.ActiveCfg = Debug|x64
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Debug|x64.Build.0 = Debug|x64
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Debug|x86.ActiveCfg = Debug|Win32
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Debug|x86.Build.0 = Debug|Win32
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Release|x64.ActiveCfg = Release|x64
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Release|x64.Build.0 = Release|x64
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Release|x86.ActiveCfg = Release|Win32
+		{59FDE67A-AB1E-41A3-A270-A2E208FE893B}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

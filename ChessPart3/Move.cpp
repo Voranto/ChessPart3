@@ -11,9 +11,7 @@ Move::Move(PieceType type, PieceColor color, std::pair<int, int> from, std::pair
 	this->eats = std::nullopt;
 }
 
-Move::Move() {
 
-}
 
 
 std::ostream& operator<<(std::ostream& os, const Move& mv) {
@@ -42,4 +40,16 @@ bool Move::equals(Move move) {
 	}
 	return false;
 	
+}
+
+std::string Move::toAlgebraic(std::pair<int, int> pos) {
+	char file = 'a' + pos.first;          // column to letter
+	char rank = '8' - pos.second;           // row to number
+	return std::string() + file + rank;
+}
+
+
+
+std::string Move::toString() {
+	return toAlgebraic(from) + toAlgebraic(to);
 }

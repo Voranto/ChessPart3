@@ -1,4 +1,5 @@
 #include "ChessGUI.h"
+#include <array>
 ChessGUI::ChessGUI(GUI_SCREENS screen, Chessboard board) {
 	this->mode = screen;
 	this->chessboard = board;
@@ -300,7 +301,6 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 			if ((combinedSameColorBoard & (1ULL << 63 - oneDimensionalClick)) != 0) {
 				this->setSelectedPiece(gridClick, this->chessboard.toMove);
 				
-				std::cout <<"Selected Piece: " <<  this->selectedPiece << std::endl;
 			}
 		}
 		else if (this->selectedPiece.pos != std::make_pair(-1, -1)) {
@@ -387,16 +387,20 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 }
 
 bool ChessGUI::isValidMove(Move move) {
-	std::vector<Move> movesToCompare;
+	std::array<Move,MAX_MOVES> movesToCompare;
 
+	int moveCount;
 	if (this->chessboard.toMove == white) {
 		movesToCompare = this->chessboard.whiteMoves;
+		moveCount = this->chessboard.whiteMovesCount;
 	}
 	else {
 		movesToCompare = this->chessboard.blackMoves;
+		moveCount = this->chessboard.blackMovesCount;
 	}
-
-	for (const Move& mv : movesToCompare) {
+	Move mv;
+	for (size_t i = 0; i < moveCount; i++) {
+		mv = movesToCompare[i];
 		if (move.equals(mv)) {
 			return true;
 		}
@@ -507,15 +511,20 @@ void ChessGUI::drawSelectedPiece(int clickEvent, sf::RenderWindow& window, sf::V
 void ChessGUI::drawSelectedPiecePossibilities(int clickEvent, sf::RenderWindow& window, sf::Vector2i boardOffset) {
 	if (this->selectedPiece.pos == std::make_pair(-1, -1)) { return; }
 
-	std::vector<Move> movesToCompare;
+	std::array<Move,MAX_MOVES> movesToCompare;
+	int moveCount;
 	if (this->chessboard.toMove == white) {
 		movesToCompare = this->chessboard.whiteMoves;
+		moveCount = this->chessboard.whiteMovesCount;
 	}
 	else {
 		movesToCompare = this->chessboard.blackMoves;
+		moveCount = this->chessboard.blackMovesCount;
 	}
 	sf::Vector2f circlePos;
-	for (const Move& move : movesToCompare) {
+	Move move;
+	for (size_t i = 0; i < moveCount; i++) {
+		move = movesToCompare[i];
 		if (move.from == this->selectedPiece.pos) {
 			circlePos = sf::Vector2f(std::get<0>(move.to) * this->squareSize, std::get<1>(move.to) * this->squareSize);
 			circlePos += sf::Vector2f(boardOffset);

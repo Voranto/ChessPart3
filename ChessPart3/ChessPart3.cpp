@@ -16,16 +16,17 @@
 #include <fstream>
 #include "TextBox.h"
 
-sf::RenderWindow window(sf::VideoMode(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height), "CHESS GAME", sf::Style::Default);
-sf::Vector2f windowSize = sf::Vector2f(window.getSize().x , window.getSize().y);
+sf::RenderWindow window;
+sf::Vector2f windowSize;
 
 sf::Font font;
+
+bool DEBUG = true;
 
 void renderStartGUI();
 void renderSingleplayerGUI();
 void renderHostGameGUI();
 void renderLocalGameGUI();
-void startNgrok();
 void renderBotGUI();
 std::vector<uint8_t> serializeMove(const Move& move);
 Move deserializeMove(const uint8_t* data, size_t dataLength);
@@ -214,26 +215,20 @@ void renderBotGUI() {
 void renderLocalGameGUI() {
     int clickEvent = -1;
     int newEvent;
-    Chessboard board("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    Chessboard board("2bqk2r/ppppp1pp/1r3n2/1bn2p2/2P1P3/1QN2N2/PP1P1PPP/R1B1KB1R w KQk- - 0 1");
     
     ChessGUI localGameGUI = ChessGUI(GUI_SCREENS(SINGLEPLAYER_LOCAL), board);
     localGameGUI.font = font;
     //FEATURES BUTTONS
     Button printFENButton = Button(sf::Vector2f(windowSize.x * 0.88, windowSize.y * 0.5), font, "PRINT FEN", 50, sf::Color(255, 255, 255), sf::Color(200, 200, 200), 80);
     localGameGUI.buttons.emplace_back(printFENButton);
-
     localGameGUI.chessboard.calculateWhiteMoves();
-    for (int i = 0; i < 6; i++) {
-        auto start = std::chrono::high_resolution_clock::now();
-        std::cout << "Moves checked: "<<  localGameGUI.chessboard.countMoves(i) << std::endl;
+    
 
-        auto stop = std::chrono::high_resolution_clock::now();
-        std::cout << "Duration: " << std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count() << "ms" <<  std::endl;
-    }
+
     sf::Vector2i boardOffset(500, 50);
 
     std::optional<Button> clickedButton = std::nullopt;
-    localGameGUI.chessboard.calculateWhiteMoves();
 
     while (window.isOpen())
     {
@@ -263,7 +258,6 @@ void renderLocalGameGUI() {
         if (clickedButton.has_value()) {
             if (clickedButton.value().textString == "PRINT FEN") {
                 std::cout << localGameGUI.chessboard.getFEN() << std::endl;
-                std::cout << localGameGUI.chessboard.calculateBestMove() << std::endl;
             }
         }
 
@@ -436,7 +430,6 @@ void renderMultiplayerGameGUI(PieceColor color,sf::TcpSocket* socket) {
     multiplayerGameGUI.chessboard.calculateMoves();
 
     sf::Vector2i boardOffset(500, 50);
-    std::cout << multiplayerGameGUI.clientColor << std::endl;
     std::optional<Button> clickedButton = std::nullopt;
     std::optional<Move> moveMade = std::nullopt;
     // Setup socket selector to monitor the socket for reading
@@ -505,13 +498,106 @@ void renderMultiplayerGameGUI(PieceColor color,sf::TcpSocket* socket) {
     }
 }
 
+void processDebugCommand(int input, Chessboard& board);
+void debugGUI() {
+    Chessboard board("2bqk2r/ppppp1pp/1r3n2/1bn2p2/2P1P3/1QN2N2/PP1P1PPP/R1B1KB1R w KQk- - 0 1");
+    board.calculateWhiteMoves();
+    int userInput = -1;
+    while (userInput != 0) {
+        std::cout << "Enter your command (for help, press 1): ";
+        std::cin >> userInput;
+        processDebugCommand(userInput,board);
+    }
+}
+
+void processDebugCommand(int input, Chessboard& board) {
+    switch (input) {
+    case 0: {
+        std::cout << "Exiting..." << std::endl;
+        break;
+    }
+    case 1: {
+        std::cout << "The following commands are allowed: " << std::endl;
+        std::cout << "- Press 0 to exit the CLI" << std::endl;
+        std::cout << "- Press 1 for help" << std::endl;
+        std::cout << "- Press 2 to enter counting moves mode" << std::endl;
+        std::cout << "- Press 3 to enter move executing mode" << std::endl;
+        std::cout << "- Press 4 to get FEN" << std::endl;
+        std::cout << "- Press 5 to set FEN" << std::endl;
+        break;
+    }
+    case 2:{
+        std::cout << "Entered counting moves mode.." << std::endl;
+        std::cout << "Enter the depth of the search: ";
+        int depth;
+        std::cin >> depth;
+        if (depth > 0) {
+            std::array <Move, MAX_MOVES>  movesToCheck;
+            int totalMoves;
+            if (board.toMove == white) {
+                board.calculateWhiteMoves();
+                movesToCheck = board.whiteMoves;
+                totalMoves = board.whiteMovesCount;
+            }
+            else {
+                board.calculateBlackMoves();
+                movesToCheck = board.blackMoves;
+                totalMoves = board.blackMovesCount;
+            }
+            std::sort(movesToCheck.begin(), movesToCheck.begin() + totalMoves, [](Move& a, Move& b) {
+                return a.toString() < b.toString();
+                });
+            for (int i = 0; i < totalMoves; i++) {
+                Move currMove = movesToCheck[i];
+                board.executeMove(currMove);
+                board.undoMove(currMove);
+            }
+            std::cout << "Total moves: " << board.countMoves(depth) << std::endl;
+        }
+        break;
+    }
+    case 3: {
+        std::cout << "Entered counting executing moves mode.." << std::endl;
+        std::cout << "Enter the move to execute: ";
+        std::string moveToExecute;
+        std::cin >> moveToExecute;
+        Move move = board.stringToMove(moveToExecute);
+        std::cout << "Executing move : " << move.toString() << std::endl;
+        board.executeMove(move);
+        break;
+    }
+    case 4: {
+        std::cout << board.getFEN() << std::endl;
+        break;
+    }
+    case 5:{
+        std::string val;
+        std::cout << "Input your FEN: ";
+        std::cin.ignore(); // Clear any leftover newline from previous input
+        std::getline(std::cin, val);
+        board.setFEN(val);
+        std::cout << "FEN set." << std::endl;
+        break;
+    }
+    }
+    
+    
+}
+
 int main()
 {
-    window.setPosition(sf::Vector2i(0, 0));
-    font.loadFromFile(".\\font\\arial.ttf");
-    window.setMouseCursorVisible(true);
-    renderStartGUI();
+    if (DEBUG) {
+        debugGUI();
+    }
+    else {
+        window.create(sf::VideoMode(sf::VideoMode::getDesktopMode().width, sf::VideoMode::getDesktopMode().height), "CHESS GAME", sf::Style::Default);
+        windowSize = sf::Vector2f(window.getSize().x, window.getSize().y);
 
+        window.setPosition(sf::Vector2i(0, 0));
+        font.loadFromFile(".\\font\\arial.ttf");
+        window.setMouseCursorVisible(true);
+        renderStartGUI();
+    }
     return 0;
 }
 
@@ -570,3 +656,4 @@ Move deserializeMove(const uint8_t* data, size_t dataLength) {
         std::make_pair(to0, to1)
     );
 }
+
