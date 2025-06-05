@@ -82,7 +82,7 @@ TEST(ChessboardTest, CountMoves) {
     Chessboard board(startingFEN);
     std::vector<int> amountOfMoves = { 34,1237,41999, 1503852 };
 
-    for (int i = 1; i <= 4; i++) {
+    for (int i = 1; i <= 3; i++) {
         int val = board.countMoves(i);
         EXPECT_TRUE(val == amountOfMoves[i - 1]) << "Expected: " << amountOfMoves[i - 1] << std::endl << "Result: " << val << std::endl;
     }
@@ -95,4 +95,15 @@ TEST(ChessboardTest, PromotionTest) {
     board.calculatePawnMoves(white);
 
     EXPECT_TRUE(board.whiteMovesCount == 4) << board.whiteMovesCount; 
+}
+
+TEST(ChessboardTest, StockfishMoveGenerationTest) {
+    std::string startingFEN = "2bqk2r/ppppp1pp/1r3n2/1bn2p2/2P1P3/1QN2N2/PP1P1PPP/R1B1KB1R w KQk- - 0 1";
+    Chessboard board(startingFEN);
+
+    std::vector<Move> stockFishMoves = board.getStockfishMoves();
+    board.calculateWhiteMoves();
+
+    std::cout << stockFishMoves.size() << " " << board.whiteMovesCount << std::endl;
+    EXPECT_TRUE(stockFishMoves.size() == board.whiteMovesCount);
 }

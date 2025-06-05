@@ -74,8 +74,10 @@ public:
 
 	Move() = default;
 	bool equals(Move move);
-    std::string toAlgebraic(std::pair<int, int> pos);
     std::string toString();
+private:
+    std::string toAlgebraic(std::pair<int, int> pos);
+    
     
 };
 
