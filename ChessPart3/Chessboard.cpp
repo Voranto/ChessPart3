@@ -1,3 +1,4 @@
+
 #include "Chessboard.h"
 #include "pieceColor.h"
 #include <bitset>
@@ -7,9 +8,8 @@
 #include <cstdint>
 #include <future>
 #include <array>
-
-
-
+#include <sstream>
+#include <ctype.h>
 
 
 
@@ -508,7 +508,11 @@ void Chessboard::calculateBishopMoves(PieceColor color, bool calculateExtended) 
 						moveToAdd = Move(PieceType(Bishop), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
 
-						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; continue; }
+						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; 
+						if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) {
+							break;
+						}
+						continue; }
 
 						if (color == PieceColor(white)) {
 							this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
@@ -591,14 +595,20 @@ void Chessboard::calculateRookMoves(PieceColor color, bool calculateExtended) {
 						&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 						moveToAdd = Move(PieceType(Rook), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
-						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; continue; }
+						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; 
+						if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) {
+							break;
+						}
+						continue; }
 
 						if (color == PieceColor(white)) {
 							this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
 						}
 						else {  this->blackMoves[this->blackMovesCount++] = std::move(moveToAdd); }
 					}
-					if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) { break; }
+					if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) {
+						break;
+					}
 					p += 1;
 				}
 			}
@@ -677,7 +687,11 @@ void Chessboard::calculateQueenMoves(PieceColor color, bool calculateExtended) {
 						&& 0 <= newX && newX < 8 && 0 <= newY && newY < 8) {
 						moveToAdd = Move(PieceType(Queen), PieceColor(color), std::make_pair(x, y), std::make_pair(newX, newY));
 						moveToAdd.eats = this->eats(moveToAdd);
-						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; continue; }
+						if (calculateExtended && this->wouldMoveCauseCheck(moveToAdd)) { p += 1; 
+						if (this->bitInBoard(combinedOppositeColorBoard, newIdx) || 0 > newX || newX > 7 || 0 > newY || newY > 7) {
+							break;
+						}
+						continue; }
 
 						if (color == PieceColor(white)) {
 							this->whiteMoves[this->whiteMovesCount++] = std::move(moveToAdd);
@@ -1208,7 +1222,6 @@ std::map<PieceType, int> Chessboard::getMaterial(PieceColor color) {
 	return answer;
 }
 
-
 int Chessboard::simpleEvaluation() {
 #ifdef _MSC_VER
 #define POPCOUNT64(x) __popcnt64(x)
@@ -1227,8 +1240,6 @@ int Chessboard::simpleEvaluation() {
 			POPCOUNT64(blackRooks) * 500 +
 			POPCOUNT64(blackQueens) * 900) )*(this->toMove == white ? 1 : -1);
 }
-
-
 
 Move Chessboard::calculateBestMove() {
 	std::array<Move,MAX_MOVES> movesToCheck;
@@ -1567,7 +1578,6 @@ void Chessboard::undoMove(Move& move) {
 	
 }
 
-
 int Chessboard::countMoves(int depth) {
 	if (depth == 0) {
 		return 1;
@@ -1687,3 +1697,20 @@ std::pair<PieceType, PieceColor> Chessboard::getTypeOfPos(std::pair<int, int> po
 
 }
 
+std::vector<Move> Chessboard::getStockfishMoves() {
+	std::vector<Move> moves;
+
+	auto isMove = [](std::string input) {
+		return input.at(0)>= 'a' && input.at(0) <= 'h'
+			&& isdigit(input.at(1))
+			&& input.at(2) >= 'a' && input.at(2) <= 'h' &&
+			isdigit(input.at(3));
+		};
+
+
+	
+
+	
+	
+	return moves;
+}

@@ -1,20 +1,32 @@
-#include <SFML/Graphics.hpp>
-#include <SFML/Network.hpp>
+// System-specific defines — goes first!
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+
+// Standard Library Headers
 #include <iostream>
 #include <optional>
+#include <bitset>
+#include <chrono>
+#include <thread>
+#include <cmath>       // prefer <cmath> over <math.h>
+#include <sstream>
+#include <cstdlib>
+#include <fstream>
+
+
+
+// SFML
+#include <SFML/Network.hpp>          // comes before SFML/Graphics.hpp if using both
+#include <SFML/Graphics.hpp>
+
+// Your own headers (local includes last)
 #include "GUI.h"
 #include "Button.h"
 #include "GUI_Screens.h"
 #include "ChessGUI.h"
 #include "MultiplayerChessGUI.h"
-#include <bitset>
-#include <chrono>
-#include <thread>
-#include <math.h>
-#include <sstream>
-#include <cstdlib>
-#include <fstream>
 #include "TextBox.h"
+
 
 sf::RenderWindow window;
 sf::Vector2f windowSize;
@@ -215,14 +227,14 @@ void renderBotGUI() {
 void renderLocalGameGUI() {
     int clickEvent = -1;
     int newEvent;
-    Chessboard board("2bqk2r/ppppp1pp/1r3n2/1bn2p2/2P1P3/1QN2N2/PP1P1PPP/R1B1KB1R w KQk- - 0 1");
+    Chessboard board("2bq3r/pppppkpp/1r3n2/1Pn2p2/4P3/PQN2N2/1P1P1PPP/R1B1KB1R b KQ-- - 0 2");
     
     ChessGUI localGameGUI = ChessGUI(GUI_SCREENS(SINGLEPLAYER_LOCAL), board);
     localGameGUI.font = font;
     //FEATURES BUTTONS
     Button printFENButton = Button(sf::Vector2f(windowSize.x * 0.88, windowSize.y * 0.5), font, "PRINT FEN", 50, sf::Color(255, 255, 255), sf::Color(200, 200, 200), 80);
     localGameGUI.buttons.emplace_back(printFENButton);
-    localGameGUI.chessboard.calculateWhiteMoves();
+    localGameGUI.chessboard.calculateBlackMoves();
     
 
 
@@ -547,12 +559,17 @@ void processDebugCommand(int input, Chessboard& board) {
             std::sort(movesToCheck.begin(), movesToCheck.begin() + totalMoves, [](Move& a, Move& b) {
                 return a.toString() < b.toString();
                 });
+
+            long total = 0;
             for (int i = 0; i < totalMoves; i++) {
                 Move currMove = movesToCheck[i];
                 board.executeMove(currMove);
+                long val = board.countMoves(depth - 1);
+                total += val;
+                std::cout << "Move: " << currMove.toString() <<" "<< val << std::endl;
                 board.undoMove(currMove);
             }
-            std::cout << "Total moves: " << board.countMoves(depth) << std::endl;
+            std::cout << "Total moves: " << total << std::endl;
         }
         break;
     }

@@ -153,5 +153,7 @@ public:
 	bool bitInBoard(uint64_t board, int idx);
 
 	bool noBitInBoard(uint64_t board, int idx);
+
+	std::vector<Move> getStockfishMoves();
 };
 
