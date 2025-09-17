@@ -1,0 +1,65 @@
+Chessboard class:
+- uint64 for all piece types, included a combined for all white and all black
+- store zobrist hash, transposition table
+- bool whiteToMove
+- use a int castlingRights for each of the significant bits
+- int halfMoves
+- int fullMoves
+- int enPassantSquare
+- setting Starting position from FEN?
+- Making moves
+- Unmaking moves
+- Some trivial checks
+
+- initZobrist, updateZobrist
+- isSquareAttacked()
+- setStartingPosition()
+
+
+
+class boardState: 
+- int clastlingrights
+- int enPassantSquare
+- halfMoveClock
+- uint64 zobrist hash
+
+
+class MoveGenerator()
+- transposition tables
+- public functions generateLegalMoves, generatePseudoLegalMoves
+- private functions for each of the piece type generation, takes reference of board, and a reference of a move vector
+
+class Evaluator
+- evaluate()
+
+class Search
+- public findBestMove, takes board and depth,
+- private alphabeta, recursive function with board, depth, alpha, beta, and boolean for the player to maximize
+
+class ChessEngine:
+- stack of boardstates either here or in chessboard object
+- has a board
+- newGame()
+- loadFEN()
+- getBestMove(depth), iterative deepening
+- makeMove()
+
+get the gui to just interact with a sort of api of the chessengine
+
+
+
+
+
+Move class:
+int fromsquare
+int toSquare
+PieceType pieceType
+PieceColor pieceColor
+PieceType capture
+PieceType promotion
+bool isEnPassant
+bool isCastle
+
+PieceType has to include none
+
+
