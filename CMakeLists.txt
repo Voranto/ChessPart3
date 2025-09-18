@@ -9,6 +9,7 @@ set(SOURCES
     Engine/Board.cpp
     Engine/PieceType.cpp
     Engine/pieceColor.cpp
+    Engine/MoveGenerator.cpp
     main.cpp
 )
 

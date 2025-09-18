@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <random>
 #include <iostream>
-
+#include "MoveGenerator.h"
 uint64_t ZobristTable[12][64]; // 12 piece types 64 squares
 uint64_t ZobristSide;          // Side to move
 uint64_t ZobristCastling[16];  // Castling rights states
@@ -38,6 +38,9 @@ int castlingRightsAfterMove(const Move& move, int oldCastling){
 
 
 Board::Board() {
+	
+
+
 	blackPawns = 0;
 	blackRooks = 0;
 	blackBishops = 0;

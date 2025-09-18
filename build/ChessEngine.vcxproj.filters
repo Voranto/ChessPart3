@@ -10,6 +10,9 @@
     <ClCompile Include="C:\Users\lucas\Desktop\Programacion\ChessPart3\Engine\pieceColor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\lucas\Desktop\Programacion\ChessPart3\Engine\MoveGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\lucas\Desktop\Programacion\ChessPart3\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

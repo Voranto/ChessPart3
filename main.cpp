@@ -17,11 +17,37 @@
 #include <sstream>
 #include <cstdlib>
 #include <fstream>
+#include "Engine/MoveGenerator.h"
+
+void printBitboard(uint64_t board) {
+    std::bitset<64> bits(board);
+    for (int rank = 7; rank >= 0; --rank) { // rank 8 to 1
+        for (int file = 0; file < 8; ++file) { // file a to h
+            int sq = rank * 8 + file; 
+            std::cout << bits[sq] << " ";
+        }
+        std::cout << std::endl;
+    }
+}
+
 
 int main()
 {
+    MoveGenerator::initKnightAttacks();
+    MoveGenerator::initKingAttacks();
+    MoveGenerator::initSlidingAttacks();
+    std::cout << "check2" << std::endl;
+
+
     Board board = Board();
     board.setStartingPosition();
     board.print();
+    MoveGenerator gen(board);
+
+
     
+
+    
+    
+
 }
