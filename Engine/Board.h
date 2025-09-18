@@ -1,17 +1,20 @@
 #include <vector>
 #include <iostream>
-
-
+#include "Move.h"
+#include <cstdint>
+#include <bitset>
+#include <iomanip>
 #pragma once
 
 
-struct BoardState{
+
+struct BoardState {
 	int castlingRights;
 	int enPassantSquare;
 	int halfMoveClock;
 	uint64_t zobristHash;
 	int capturedPiece;
-}
+};
 
 class Board{
 public:
@@ -43,10 +46,44 @@ public:
 	void unmakeMove(const Move& move);
 	bool isSquareAttacked(int square, bool byWhite) const;
 
-	void print() const;
+	std::pair<PieceType, PieceColor> getPieceTypeAtBit(int bit);
+	char getLetterOfPieceType(PieceType type);
+
+
+	void print() {
+		std::cout << "   +-----------------+\n";
+		for (int i = 0; i < 8; i++) {
+			std::cout << 8 - i << "  | ";  // rank label
+			for (int j = 0; j < 8; j++) {
+				int bit = 63 - (i * 8 + j);
+				auto piece = getPieceTypeAtBit(bit);
+				char c = getLetterOfPieceType(piece.first);
+
+				if (piece.first == None) {
+					std::cout << ". ";
+				} else if (piece.second == white) {
+					std::cout << c << " ";
+				} else {
+					std::cout << static_cast<char>(std::tolower(c)) << " ";
+				}
+				} 
+			std::cout << "|\n";
+		}
+		std::cout << "   +-----------------+\n";
+		std::cout << "     a b c d e f g h\n\n";
+
+		std::cout << "Halfmove:  " << halfMoveClock << "\n";
+		std::cout << "Fullmove:  " << fullMoveNumber << "\n";
+		std::cout << "Castling:  " << std::bitset<4>(castlingRights) << "\n";
+		std::cout << "EnPassant: " << enPassantSquare << "\n";
+	};
+
+	
 
 	void initZobristKeys();
 	void updateZobrist(const Move& move);
 
 
 };
+
+

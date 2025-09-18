@@ -12,7 +12,7 @@ class MoveGenerator{
 
 		void generateLegalMoves(std::vector<Move>& moves) const;
 		void generatePseudoLegalMoves(std::vector<Move>& moves) const;
-    		void generateCaptures(std::vector<Move>& moves) const;
+    	void generateCaptures(std::vector<Move>& moves) const;
 
 
 	private:
@@ -31,5 +31,4 @@ class MoveGenerator{
 
     		// Attack utilities
     		uint64_t attacksFromSquare(int square, PieceType piece) const;
-};
 };

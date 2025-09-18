@@ -1,4 +1,5 @@
-
+#include "Move.h"
+#include "Board.h"
 #pragma once
 
 class Search{
