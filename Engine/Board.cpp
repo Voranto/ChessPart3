@@ -5,7 +5,7 @@
 #include "MoveGenerator.h"
 uint64_t ZobristTable[12][64]; // 12 piece types 64 squares
 uint64_t ZobristSide;          // Side to move
-uint64_t ZobristCastling[16];  // Castling rights states
+uint64_t ZobristCastling[16];  // Castling  rights states
 uint64_t ZobristEnPassant[8];  // En passant file
 
 int pieceIndex(PieceType type, PieceColor color) {
@@ -154,7 +154,7 @@ void Board::setStartingPosition() {
 	whiteBishops = 0x0000000000000024;
 	whiteQueens = 0x0000000000000008;
 	whiteKing = 0x0000000000000010;
-
+	
 	blackPawns = 0x00FF000000000000;
 	blackRooks = 0x8100000000000000;
 	blackBishops = 0x2400000000000000;
@@ -168,6 +168,29 @@ void Board::setStartingPosition() {
 
 }
 
+void Board::setTestingPosition(){
+	whiteToMove = true;
+
+	//setting up board (LITTLE ENDIAN)
+	whitePawns = 0ULL;
+	whiteRooks = 0ULL;
+	whiteKnights = 0ULL;
+	whiteBishops = 0ULL;
+	whiteQueens = 0x0000000000000008;
+	whiteKing = 0ULL;
+	
+	blackPawns = 0ULL;
+	blackRooks = 0ULL;
+	blackBishops = 0ULL;
+	blackKnights = 0ULL;
+	blackQueens = 0ULL;
+	blackKing = 0ULL;
+
+	whitePieces = whitePawns | whiteRooks | whiteKnights | whiteBishops | whiteQueens | whiteKing;
+	blackPieces = blackPawns | blackRooks | blackKnights | blackBishops | blackQueens | blackKing;
+	allPieces = whitePieces | blackPieces;
+}
+
 //helper functions
 char Board::getLetterOfPieceType(PieceType type) {
 	if (type == None) { return '.'; }
@@ -175,9 +198,18 @@ char Board::getLetterOfPieceType(PieceType type) {
 	return pieceTypeNames[type][0];
 }
 
+uint64_t Board::getCombinedBoard(PieceColor color) const{
+	if (color == white){
+		return whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing;
+	}
+	else{
+		return blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing;
+	}
+}
+
 
 //using little endian, bit 0 is a1
-std::pair<PieceType, PieceColor> Board::getPieceTypeAtBit( int bit) {
+std::pair<PieceType, PieceColor> Board::getPieceTypeAtBit( int bit) const {
 	uint64_t mask = 1ULL << bit;
 	if ((blackPawns & mask) != 0) {
 		return { Pawn,black };

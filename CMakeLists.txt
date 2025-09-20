@@ -10,6 +10,7 @@ set(SOURCES
     Engine/PieceType.cpp
     Engine/pieceColor.cpp
     Engine/MoveGenerator.cpp
+    Engine/Move.cpp
     main.cpp
 )
 

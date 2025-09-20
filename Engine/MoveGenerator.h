@@ -19,6 +19,7 @@ class MoveGenerator{
 		static void initKingAttacks();
 		static void initSlidingAttacks();
 		
+
 	private:
     		const Board& board;
 
@@ -36,7 +37,7 @@ class MoveGenerator{
     // Piece-specific helpers
     		void generatePawnMoves(std::vector<Move>& moves) const;
     		void generateKnightMoves(std::vector<Move>& moves) const;
-    		void generateBishopMoves(std::vector<Move>& moves) const;
+			void generateBishopMoves(std::vector<Move>& moves) const;
     		void generateRookMoves(std::vector<Move>& moves) const;
     		void generateQueenMoves(std::vector<Move>& moves) const;
     		void generateKingMoves(std::vector<Move>& moves) const;

@@ -42,11 +42,15 @@ public:
 	Board();
 
 	void setStartingPosition();
+	void setTestingPosition();
+
 	void makeMove(const Move& move);
 	void unmakeMove(const Move& move);
 	bool isSquareAttacked(int square, bool byWhite) const;
 
-	std::pair<PieceType, PieceColor> getPieceTypeAtBit(int bit);
+	uint64_t getCombinedBoard(PieceColor color) const;
+
+	std::pair<PieceType, PieceColor> getPieceTypeAtBit(int bit) const;
 	char getLetterOfPieceType(PieceType type);
 
 
@@ -54,11 +58,11 @@ public:
 		std::cout << "   +-----------------+\n";
 		for (int i = 0; i < 8; i++) {
 			std::cout << 8 - i << "  | ";  // rank label
-			for (int j = 0; j < 8; j++) {
+			for (int j = 7; j >= 0; j--) {
 				int bit = 63 - (i * 8 + j);
-				auto piece = getPieceTypeAtBit(bit);
+				std::pair<PieceType,PieceColor> piece = this->getPieceTypeAtBit(bit);
 				char c = getLetterOfPieceType(piece.first);
-
+				
 				if (piece.first == None) {
 					std::cout << ". ";
 				} else if (piece.second == white) {

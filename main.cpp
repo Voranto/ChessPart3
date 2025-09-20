@@ -36,16 +36,19 @@ int main()
     MoveGenerator::initKnightAttacks();
     MoveGenerator::initKingAttacks();
     MoveGenerator::initSlidingAttacks();
-    std::cout << "check2" << std::endl;
 
 
     Board board = Board();
-    board.setStartingPosition();
+    board.setTestingPosition();
     board.print();
     MoveGenerator gen(board);
-
-
+    std::vector<Move> moves = {};
+    gen.generateQueenMoves(moves);
     
+    std::cout << "Size" << moves.size() << std::endl;
+    for (Move move : moves){
+        std::cout << move.toString() << std::endl;
+    }
 
     
     

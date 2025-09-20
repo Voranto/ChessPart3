@@ -1,4 +1,125 @@
 #include "MoveGenerator.h"
+#include "Move.h"
+#include <intrin.h>
+#include "Board.h"
+
+
+MoveGenerator::MoveGenerator(const Board& b) : board(b){
+}
+
+void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t kingBoard = color == white ? board.whiteKing : board.blackKing;
+    
+    while (kingBoard){
+        int targetSquare = __builtin_ctzll(kingBoard);
+        kingBoard &= kingBoard -1 ;
+
+        uint64_t currentKingAttacks = kingAttacks[targetSquare];
+        //Mask for current pieces
+        currentKingAttacks &= ~board.getCombinedBoard(color);
+        while (currentKingAttacks){
+            int targetAttack = __builtin_ctzll(currentKingAttacks);
+            currentKingAttacks &= currentKingAttacks -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+
+            Move moveToAdd = Move(King,color, targetSquare,targetAttack,None,pieceEatenType,false);
+
+            moves.push_back(moveToAdd);
+        }
+
+
+    }
+}
+
+void MoveGenerator::generateKnightMoves(std::vector<Move>& moves) const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t knightsBoard = color == white ? board.whiteKnights : board.blackKnights;
+    
+    while (knightsBoard){
+        int targetSquare = __builtin_ctzll(knightsBoard);
+        knightsBoard &= knightsBoard -1 ;
+
+        uint64_t currentKnightAttack = knightAttacks[targetSquare];
+        //Mask for current pieces
+        currentKnightAttack &= ~board.getCombinedBoard(color);
+        while (currentKnightAttack){
+            int targetAttack = __builtin_ctzll(currentKnightAttack);
+            currentKnightAttack &= currentKnightAttack -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+
+            Move moveToAdd = Move(Knight,color, targetSquare,targetAttack,None,pieceEatenType,false);
+
+            moves.push_back(moveToAdd);
+        }
+
+
+    }
+}
+
+void MoveGenerator::generateRookMoves(std::vector<Move>& moves) const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t rookBoard = color == white ? board.whiteRooks : board.blackRooks;
+    while (rookBoard){
+        
+        int targetSquare = __builtin_ctzll(rookBoard);
+        rookBoard &= rookBoard -1 ;
+        uint64_t currentRookAttacks = getRookAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+
+        while (currentRookAttacks){
+            int targetAttack = __builtin_ctzll(currentRookAttacks);
+            currentRookAttacks &= currentRookAttacks -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+
+            Move moveToAdd = Move(Rook,color, targetSquare,targetAttack,None,pieceEatenType,false);
+
+            moves.push_back(moveToAdd);
+        }
+    }
+}
+
+void MoveGenerator::generateBishopMoves(std::vector<Move>& moves) const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t bishopBoard = color == white ? board.whiteBishops : board.blackBishops;
+    while (bishopBoard){
+        
+        int targetSquare = __builtin_ctzll(bishopBoard);
+        bishopBoard &= bishopBoard -1 ;
+        uint64_t currentBishopAttacks = getBishopAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+
+        while (currentBishopAttacks){
+            int targetAttack = __builtin_ctzll(currentBishopAttacks);
+            currentBishopAttacks &= currentBishopAttacks -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+
+            Move moveToAdd = Move(Bishop,color, targetSquare,targetAttack,None,pieceEatenType,false);
+
+            moves.push_back(moveToAdd);
+        }
+    }
+}
+
+void MoveGenerator::generateQueenMoves(std::vector<Move>& moves) const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t queenBoard = color == white ? board.whiteQueens : board.blackQueens;
+    while (queenBoard){
+        
+        int targetSquare = __builtin_ctzll(queenBoard);
+        queenBoard &= queenBoard -1 ;
+        uint64_t currentQueenAttacks = getBishopAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)))
+                                        | getRookAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+
+        while (currentQueenAttacks){
+            int targetAttack = __builtin_ctzll(currentQueenAttacks);
+            currentQueenAttacks &= currentQueenAttacks -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+
+            Move moveToAdd = Move(Queen,color, targetSquare,targetAttack,None,pieceEatenType,false);
+
+            moves.push_back(moveToAdd);
+        }
+    }
+}
 
 
 uint64_t MoveGenerator::knightAttacks[64] = {0};
@@ -114,8 +235,6 @@ uint64_t MoveGenerator::BishopMasks[64]=
 };
 
 
-MoveGenerator::MoveGenerator(const Board& b) : board(b){
-}
 
 void MoveGenerator::initKnightAttacks(){
     for(int sq=0;sq<64;sq++){
@@ -247,24 +366,23 @@ uint64_t MoveGenerator::bishopAttacksOnTheFly(int sq, uint64_t blockers) {
     return attacks;
 }
 
-
 //IMPORTANT
 //-------------------------
 //STILL HAVE TO MASK OUT OWN PIECES attacks & ~ownPieces
 uint64_t MoveGenerator::getRookAttacks(int square, uint64_t occupancy) {
-    uint64_t index = (occupancy & RookMasks[square]) * RookMagics[square] >> (64 - RookRelevantBits[square]);
+    uint64_t blockers = occupancy & RookMasks[square];
+    uint64_t index = (blockers * RookMagics[square]) >> (RookRelevantBits[square]);
 
-    
     return RookAttackTable[square][index];
+
 }
 
 uint64_t MoveGenerator::getBishopAttacks(int square, uint64_t occupancy) {
-    uint64_t index = (occupancy & BishopMasks[square]) * BishopMagics[square] >> (64 - BishopRelevantBits[square]);
+    uint64_t blockers = occupancy & BishopMasks[square];
+    uint64_t index = (blockers * BishopMagics[square]) >> (BishopRelevantBits[square]);
 
-    
     return BishopAttackTable[square][index];
 }
-
 
 uint64_t MoveGenerator::getQueenAttacks(int square, uint64_t occupancy) {
     return getBishopAttacks(square,occupancy) | getRookAttacks(square,occupancy);
