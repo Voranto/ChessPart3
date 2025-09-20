@@ -7,6 +7,15 @@
 MoveGenerator::MoveGenerator(const Board& b) : board(b){
 }
 
+void MoveGenerator::generateLegalMoves(std::vector<Move>& moves) const{
+    generateKingMoves(moves);
+    generateKnightMoves(moves);
+    generateRookMoves(moves);
+    generateBishopMoves(moves);
+    generateQueenMoves(moves);
+    generatePawnMoves(moves);
+}
+
 void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t kingBoard = color == white ? board.whiteKing : board.blackKing;
@@ -65,7 +74,7 @@ void MoveGenerator::generateRookMoves(std::vector<Move>& moves) const {
         int targetSquare = __builtin_ctzll(rookBoard);
         rookBoard &= rookBoard -1 ;
         uint64_t currentRookAttacks = getRookAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
-
+        currentRookAttacks &= ~board.getCombinedBoard(color);
         while (currentRookAttacks){
             int targetAttack = __builtin_ctzll(currentRookAttacks);
             currentRookAttacks &= currentRookAttacks -1;
@@ -86,7 +95,7 @@ void MoveGenerator::generateBishopMoves(std::vector<Move>& moves) const {
         int targetSquare = __builtin_ctzll(bishopBoard);
         bishopBoard &= bishopBoard -1 ;
         uint64_t currentBishopAttacks = getBishopAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
-
+        currentBishopAttacks &= ~board.getCombinedBoard(color);
         while (currentBishopAttacks){
             int targetAttack = __builtin_ctzll(currentBishopAttacks);
             currentBishopAttacks &= currentBishopAttacks -1;
@@ -108,7 +117,8 @@ void MoveGenerator::generateQueenMoves(std::vector<Move>& moves) const {
         queenBoard &= queenBoard -1 ;
         uint64_t currentQueenAttacks = getBishopAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)))
                                         | getRookAttacks(targetSquare,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
-
+        
+        currentQueenAttacks &= ~board.getCombinedBoard(color);
         while (currentQueenAttacks){
             int targetAttack = __builtin_ctzll(currentQueenAttacks);
             currentQueenAttacks &= currentQueenAttacks -1;
@@ -117,6 +127,32 @@ void MoveGenerator::generateQueenMoves(std::vector<Move>& moves) const {
             Move moveToAdd = Move(Queen,color, targetSquare,targetAttack,None,pieceEatenType,false);
 
             moves.push_back(moveToAdd);
+        }
+    }
+}
+
+void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
+    PieceColor color = board.whiteToMove == true ? white : black;
+    uint64_t pawnBoard = color == white ? board.whitePawns : board.blackPawns;
+    while (pawnBoard){
+        
+        int targetSquare = __builtin_ctzll(pawnBoard);
+        pawnBoard &= pawnBoard -1 ;
+        uint64_t pawnAttacks = getPawnAttacks(targetSquare, board.getCombinedBoard(color), board.getCombinedBoard(color == white? black : white));
+        while (pawnAttacks){
+            int targetAttack = __builtin_ctzll(pawnAttacks);
+            pawnAttacks &= pawnAttacks -1;
+            PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
+            if ((color == white && targetSquare > 55)  | (color == black && targetSquare < 8)){
+                for (int i = 1; i < 6; i++){
+                    moves.push_back(Move(Pawn,color, targetSquare,targetAttack,static_cast<PieceType>(i),pieceEatenType,targetAttack == board.enPassantSquare));
+                }
+            }
+            else{
+                Move moveToAdd = Move(Pawn,color, targetSquare,targetAttack,None,pieceEatenType,targetAttack == board.enPassantSquare);
+
+                moves.push_back(moveToAdd);
+            }
         }
     }
 }
@@ -293,6 +329,75 @@ void MoveGenerator::initSlidingAttacks(){
     }
 }
 
+uint64_t MoveGenerator::WhitePawnPush[64] = {};    // single-square push
+uint64_t MoveGenerator::WhitePawnDouble[64] = {};  // double push (only from rank 2)
+uint64_t MoveGenerator::WhitePawnAttacks[64] = {};
+
+uint64_t MoveGenerator::BlackPawnPush[64] = {};    // single-square push
+uint64_t MoveGenerator::BlackPawnDouble[64] = {};  // double push (only from rank 2)
+uint64_t MoveGenerator::BlackPawnAttacks[64] = {};
+
+void MoveGenerator::initPawnAttacks(){
+    for (int row = 0; row < 8; row++){
+        for (int col = 0; col < 8; col++){
+            int bitIndex = (7 - row) * 8 + col;
+
+            uint64_t whitePush = 0ULL;
+            uint64_t whiteDouble = 0ULL;
+            uint64_t whiteAttack = 0ULL;
+
+            // Single push (one rank up)
+            if (row > 0) {
+                whitePush |= 1ULL << (bitIndex + 8);
+            }
+
+            // Double push from rank 2 (row = 6)
+            if (row == 6) {
+                whiteDouble |= 1ULL << (bitIndex + 16);
+            }
+
+            // Diagonal captures
+            if (row > 0 && col > 0) {
+                whiteAttack |= 1ULL << (bitIndex + 7);  // left capture
+            }
+            if (row > 0 && col < 7) {
+                whiteAttack |= 1ULL << (bitIndex + 9);  // right capture
+            }
+
+            uint64_t blackPush = 0ULL;
+            uint64_t blackDouble = 0ULL;
+            uint64_t blackAttack = 0ULL;
+
+            // Single push (one rank up)
+            if (row < 7) {
+                blackPush |= 1ULL << (bitIndex - 8);
+            }
+
+            // Double push from rank 2 (row = 6)
+            if (row == 1) {
+                blackDouble |= 1ULL << (bitIndex - 16);
+            }
+
+            // Diagonal captures
+            if (row < 7  && col > 0) {
+                blackAttack |= 1ULL << (bitIndex + 7);  // left capture
+            }
+            if (row < 7 && col < 7) {
+                blackAttack |= 1ULL << (bitIndex + 9);  // right capture
+            }
+
+            WhitePawnPush[bitIndex] = whitePush;
+            WhitePawnDouble[bitIndex] = whiteDouble;  // double push (only from rank 2)
+            WhitePawnAttacks[bitIndex] = whiteAttack;
+
+            BlackPawnPush[bitIndex] = blackPush;    // single-square push
+            BlackPawnDouble[bitIndex] = blackDouble;  // double push (only from rank 2)
+            BlackPawnAttacks[bitIndex] = blackAttack;
+        }
+    }
+
+}
+
 uint64_t MoveGenerator::generateRookMask(int square) {
     uint64_t attacks = 0ULL;
     int rank = square / 8, file = square % 8;
@@ -388,4 +493,12 @@ uint64_t MoveGenerator::getQueenAttacks(int square, uint64_t occupancy) {
     return getBishopAttacks(square,occupancy) | getRookAttacks(square,occupancy);
 }
 
-
+uint64_t MoveGenerator::getPawnAttacks(int square, uint64_t combinedSame, uint64_t combinedOpposite) const{
+    uint64_t ans = 0ULL;
+    if (board.enPassantSquare != -1 && (WhitePawnAttacks[square] & (1ULL << board.enPassantSquare))) {
+        ans |= 1ULL << board.enPassantSquare;
+    }
+    
+    return ans | ((WhitePawnPush[square] | WhitePawnDouble[square]) &  ~ (combinedSame | combinedOpposite) )|
+            (WhitePawnAttacks[square] & (combinedOpposite));
+}

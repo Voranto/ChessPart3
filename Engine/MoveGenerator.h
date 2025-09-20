@@ -18,6 +18,7 @@ class MoveGenerator{
 		static void initKnightAttacks();
 		static void initKingAttacks();
 		static void initSlidingAttacks();
+		static void initPawnAttacks();
 		
 
 	private:
@@ -33,6 +34,16 @@ class MoveGenerator{
 			static uint64_t BishopMagics[64];
 			static int RookRelevantBits[64];
 			static int BishopRelevantBits[64];
+
+			static uint64_t WhitePawnPush[64];    // single-square push
+			static uint64_t WhitePawnDouble[64];  // double push (only from rank 2)
+			static uint64_t WhitePawnAttacks[64]; // diagonal captures
+
+			static uint64_t BlackPawnPush[64];    // single-square push
+			static uint64_t BlackPawnDouble[64];  // double push (only from rank 2)
+			static uint64_t BlackPawnAttacks[64]; // diagonal captures
+
+
 
     // Piece-specific helpers
     		void generatePawnMoves(std::vector<Move>& moves) const;
@@ -59,5 +70,6 @@ class MoveGenerator{
 			static uint64_t getRookAttacks(int square, uint64_t occupancy);
 			static uint64_t getBishopAttacks(int square, uint64_t occupancy);
 			static uint64_t getQueenAttacks(int square, uint64_t occupancy);
+			uint64_t getPawnAttacks(int square, uint64_t combinedSame, uint64_t combinedOpposite) const;
 
 };

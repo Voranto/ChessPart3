@@ -18,6 +18,7 @@
 #include <cstdlib>
 #include <fstream>
 #include "Engine/MoveGenerator.h"
+#include <bits/stdc++.h>
 
 void printBitboard(uint64_t board) {
     std::bitset<64> bits(board);
@@ -30,21 +31,26 @@ void printBitboard(uint64_t board) {
     }
 }
 
+bool comp(Move a, Move b){
+    return a.toString() < b.toString();
+}
 
 int main()
 {
     MoveGenerator::initKnightAttacks();
     MoveGenerator::initKingAttacks();
     MoveGenerator::initSlidingAttacks();
-
+    MoveGenerator::initPawnAttacks();
 
     Board board = Board();
     board.setTestingPosition();
     board.print();
     MoveGenerator gen(board);
     std::vector<Move> moves = {};
-    gen.generateQueenMoves(moves);
-    
+    gen.generateLegalMoves(moves);
+
+    std::sort(moves.begin(),moves.end(),comp);
+
     std::cout << "Size" << moves.size() << std::endl;
     for (Move move : moves){
         std::cout << move.toString() << std::endl;

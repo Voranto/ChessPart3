@@ -172,20 +172,21 @@ void Board::setTestingPosition(){
 	whiteToMove = true;
 
 	//setting up board (LITTLE ENDIAN)
-	whitePawns = 0ULL;
+	whitePawns = (1ULL << 38);
 	whiteRooks = 0ULL;
 	whiteKnights = 0ULL;
 	whiteBishops = 0ULL;
-	whiteQueens = 0x0000000000000008;
+	whiteQueens = 0ULL;
 	whiteKing = 0ULL;
 	
-	blackPawns = 0ULL;
+	blackPawns = (1ULL << 37);
 	blackRooks = 0ULL;
 	blackBishops = 0ULL;
 	blackKnights = 0ULL;
 	blackQueens = 0ULL;
 	blackKing = 0ULL;
 
+	enPassantSquare = 45;
 	whitePieces = whitePawns | whiteRooks | whiteKnights | whiteBishops | whiteQueens | whiteKing;
 	blackPieces = blackPawns | blackRooks | blackKnights | blackBishops | blackQueens | blackKing;
 	allPieces = whitePieces | blackPieces;
