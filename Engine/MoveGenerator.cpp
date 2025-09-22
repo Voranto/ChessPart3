@@ -16,6 +16,7 @@ void MoveGenerator::generateLegalMoves(std::vector<Move>& moves) const{
     generatePawnMoves(moves);
 }
 
+//REMEMBER CASTLING
 void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t kingBoard = color == white ? board.whiteKing : board.blackKing;
@@ -23,6 +24,33 @@ void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
     while (kingBoard){
         int targetSquare = __builtin_ctzll(kingBoard);
         kingBoard &= kingBoard -1 ;
+       //Generate castling moves
+        if(board.whiteToMove){
+            if((board.castlingRights & (1ULL << 0)) != 0 &&
+                board.getPieceTypeAtBit(1) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(2) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(3) == std::make_pair(None,white)){
+                moves.push_back(Move(King,white,4,6));
+            }
+            if((board.castlingRights & (1ULL << 1)) != 0 &&
+                board.getPieceTypeAtBit(5) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(6) == std::make_pair(None,white) ){
+                moves.push_back(Move(King,white,4,2));
+            }
+        }else{
+            if((board.castlingRights & (1ULL << 3)) != 0 &&
+                board.getPieceTypeAtBit(57) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(58) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(59) == std::make_pair(None,white)){
+                moves.push_back(Move(King,black,60,58));
+            }
+            if((board.castlingRights & (1ULL << 2)) != 0 &&
+                board.getPieceTypeAtBit(61) == std::make_pair(None,white) &&
+                board.getPieceTypeAtBit(62) == std::make_pair(None,white) ){
+                moves.push_back(Move(King,white,60,62));
+            }
+        }
+
 
         uint64_t currentKingAttacks = kingAttacks[targetSquare];
         //Mask for current pieces
@@ -494,11 +522,23 @@ uint64_t MoveGenerator::getQueenAttacks(int square, uint64_t occupancy) {
 }
 
 uint64_t MoveGenerator::getPawnAttacks(int square, uint64_t combinedSame, uint64_t combinedOpposite) const{
-    uint64_t ans = 0ULL;
-    if (board.enPassantSquare != -1 && (WhitePawnAttacks[square] & (1ULL << board.enPassantSquare))) {
-        ans |= 1ULL << board.enPassantSquare;
-    }
     
-    return ans | ((WhitePawnPush[square] | WhitePawnDouble[square]) &  ~ (combinedSame | combinedOpposite) )|
-            (WhitePawnAttacks[square] & (combinedOpposite));
+    if (board.whiteToMove){
+        uint64_t ans = 0ULL;
+        if (board.enPassantSquare != -1 && (WhitePawnAttacks[square] & (1ULL << board.enPassantSquare))) {
+            ans |= 1ULL << board.enPassantSquare;
+        }
+        
+        return ans | ((WhitePawnPush[square] | WhitePawnDouble[square]) &  ~ (combinedSame | combinedOpposite) )|
+                (WhitePawnAttacks[square] & (combinedOpposite));
+    }
+    else{
+        uint64_t ans = 0ULL;
+        if (board.enPassantSquare != -1 && (BlackPawnAttacks[square] & (1ULL << board.enPassantSquare))) {
+            ans |= 1ULL << board.enPassantSquare;
+        }
+        
+        return ans | ((BlackPawnPush[square] | BlackPawnDouble[square]) &  ~ (combinedSame | combinedOpposite) )|
+                (BlackPawnAttacks[square] & (combinedOpposite));
+    }
 }

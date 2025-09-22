@@ -3,6 +3,8 @@
 #include <random>
 #include <iostream>
 #include "MoveGenerator.h"
+#include <stdexcept>
+
 uint64_t ZobristTable[12][64]; // 12 piece types 64 squares
 uint64_t ZobristSide;          // Side to move
 uint64_t ZobristCastling[16];  // Castling  rights states
@@ -96,24 +98,152 @@ void Board::initZobristKeys() {
 	}
 }
 
+void Board::makeMove(const Move& move){
+	int oldCastlingRights = this->castlingRights;
+
+	BoardState state(this->castlingRights,this->enPassantSquare, this->halfMoveClock, this->
+	zobristHash, move.pieceEatenType);
+	this->history.push_back(state);
+	
+	this->updateZobrist(move);
+
+	//Update boards
+	uint64_t* currBoard = this->getBoardOfType(move.pieceType, move.pieceColor); 
+
+	//Delete old position
+	*currBoard &= ~(1ULL << (move.from));
+
+	//add new Position 
+	*currBoard |= (1ULL << (move.to));
+
+
+	//Update pieceEaten
+	if (move.pieceEatenType != None){
+		uint64_t* pieceEatenBoard = this->getBoardOfType(move.pieceEatenType, move.pieceColor == white ? black : white); 
+		*pieceEatenBoard &= ~(1ULL << (move.to));
+	}	
+
+	//Update en passant capture
+	if(move.isEnPassant){
+		//Delete corresponding piece
+		uint64_t* pieceEatenBoard = this->getBoardOfType(Pawn, move.pieceColor == white ? black : white); 
+		if (move.pieceColor == white){
+			*pieceEatenBoard &= ~(1ULL << (move.to - 8));
+		}
+		else{
+			*pieceEatenBoard &= ~(1ULL << (move.to + 8));
+		}
+	}
+
+	//Update new en passant square
+	if (move.pieceType == Pawn && std::abs(move.from - move.to) == 16){
+		this->enPassantSquare = move.to + (move.pieceColor == white ? -8 : 8);
+	}
+	else{
+		this->enPassantSquare = -1;
+	}
+
+	if (move.promotionPiece != None){
+		*currBoard &= ~(1ULL << (move.to));
+
+		uint64_t* promotionBoard = this->getBoardOfType(move.promotionPiece,move.pieceColor);
+		*promotionBoard |= (1ULL << (move.to)); 
+	}
+
+
+
+	//Update castling rights
+	if (move.pieceType == King){
+		if (move.pieceColor == white){
+			this->castlingRights &= ~(1ULL << (0));
+			this->castlingRights &= ~(1ULL << (1));
+		}
+		else{
+			this->castlingRights &= ~(1ULL << (2));
+			this->castlingRights &= ~(1ULL << (3));
+		}
+	}
+	if(move.from == 0 || move.to == 0){this->castlingRights &= ~(1ULL << (1));}
+	else if(move.from == 7|| move.to == 7){this->castlingRights &= ~(1ULL << (0));}
+	else if(move.from == 56 || move.to == 56){this->castlingRights &= ~(1ULL << (3));}
+	else if(move.from == 63 || move.to == 63){this->castlingRights &= ~(1ULL << (2));}
+
+	//Apply castling move
+	if(move.pieceType == King && std::abs(move.from-move.to) == 2){
+		//Move appropiate rook
+		uint64_t* rookBoard = this->getBoardOfType(Rook,move.pieceColor);
+
+		if (move.to == 2){
+			*rookBoard &= ~(1ULL << (0));
+			*rookBoard |= (1ULL << (3));
+		}
+		else if(move.to == 6){
+			*rookBoard &= ~(1ULL << (7));
+			*rookBoard |= (1ULL << (5));
+		}
+		else if(move.to == 58){
+			*rookBoard &= ~(1ULL << (56));
+			*rookBoard |= (1ULL << (59));
+		}
+		else if(move.to == 62){
+			*rookBoard &= ~(1ULL << (63));
+			*rookBoard |= (1ULL << (61));
+		}
+	}
+	if(move.pieceColor == black){
+		this->fullMoveNumber += 1;
+	}
+
+	if (move.pieceEatenType != None || move.pieceType == Pawn){
+		this->halfMoveClock = 0;
+	}
+	else{
+		this->halfMoveClock += 1;
+	}
+
+	this->whiteToMove = !this->whiteToMove;
+
+}
+
+uint64_t* Board::getBoardOfType(PieceType type, PieceColor color){
+	uint64_t* ans; 
+	if (type == Pawn){
+		ans =  color == white ? &this->whitePawns : &this->blackPawns;
+	} 
+	else if (type == Knight){
+		ans =  color == white ? &this->whiteKnights : &this->blackKnights;
+	} 
+	else if (type == Bishop){
+		ans =  color == white ? &this->whiteBishops : &this->blackBishops;
+	} 
+	else if (type == Rook){
+		ans =  color == white ? &this->whiteRooks : &this->blackRooks;
+	} 
+	else if (type == Queen){
+		ans =  color == white ? &this->whiteQueens : &this->blackQueens;
+	} 
+	else if (type == King){
+		ans =  color == white ? &this->whiteKing : &this->blackKing;
+	} 
+	else{
+		throw std::invalid_argument("type must have a value, cannot be none");
+	}
+	return ans;
+}
 
 //NOTE: HAS TO BE CALLED BEFORE EXECUTING MOVE
 void Board::updateZobrist(const Move& move) {
-    // 1️⃣ Remove moving piece from old square
     int idx = pieceIndex(move.pieceType, move.pieceColor);
     zobristHash ^= ZobristTable[idx][move.from];
 
-    // 2️⃣ Add moving piece to new square
     zobristHash ^= ZobristTable[idx][move.to];
 
-    // 3️⃣ If capture, remove captured piece
     if (move.pieceEatenType != None) {
         PieceColor enemyColor = (move.pieceColor == white) ? black : white;
         int capIdx = pieceIndex(move.pieceEatenType, enemyColor);
         zobristHash ^= ZobristTable[capIdx][move.to];
     }
 
-    // 4️⃣ Handle promotion
     if (move.promotionPiece != None) {
         // Remove pawn from destination
         int pawnIdx = pieceIndex(Pawn, move.pieceColor);

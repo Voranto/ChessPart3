@@ -43,7 +43,7 @@ int main()
     MoveGenerator::initPawnAttacks();
 
     Board board = Board();
-    board.setTestingPosition();
+    board.setStartingPosition();
     board.print();
     MoveGenerator gen(board);
     std::vector<Move> moves = {};
@@ -56,7 +56,15 @@ int main()
         std::cout << move.toString() << std::endl;
     }
 
-    
-    
+    board.makeMove(moves.front());
+    board.print();
+    moves.clear();
+    gen.generateLegalMoves(moves);
+    std::sort(moves.begin(),moves.end(),comp);
+    std::cout << "Size" << moves.size() << std::endl;
+    for (Move move : moves){
+        std::cout << move.toString() << std::endl;
+    }
+
 
 }

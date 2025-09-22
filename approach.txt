@@ -63,3 +63,17 @@ bool isCastle
 PieceType has to include none
 
 
+
+
+executeMove()
+	//updateBoard()
+	//applyCastling()
+	//updateCastlingRights()
+	//updateEnPassantSquare()
+	//deletePieceEnPassant()
+	//deleteInCaseOfCapture()
+	
+	UpdateHalfMove()
+	UpdateFullMoveClock()
+	UpdateToMove()
+

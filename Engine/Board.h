@@ -13,7 +13,12 @@ struct BoardState {
 	int enPassantSquare;
 	int halfMoveClock;
 	uint64_t zobristHash;
-	int capturedPiece;
+	PieceType capturedPiece;
+	BoardState(int castle, int passant, int halfMove, uint64_t zobrish, PieceType captured) :
+	 castlingRights(castle), enPassantSquare(passant), halfMoveClock(halfMove), 
+	 zobristHash(zobrish), capturedPiece(captured){
+
+	 }
 };
 
 class Board{
@@ -75,7 +80,7 @@ public:
 		}
 		std::cout << "   +-----------------+\n";
 		std::cout << "     a b c d e f g h\n\n";
-
+		std::cout << "To move: "<< (whiteToMove ? "white" : "black") << "\n";
 		std::cout << "Halfmove:  " << halfMoveClock << "\n";
 		std::cout << "Fullmove:  " << fullMoveNumber << "\n";
 		std::cout << "Castling:  " << std::bitset<4>(castlingRights) << "\n";
@@ -87,7 +92,7 @@ public:
 	void initZobristKeys();
 	void updateZobrist(const Move& move);
 
-
+	uint64_t* getBoardOfType(PieceType type, PieceColor color);
 };
 
 
