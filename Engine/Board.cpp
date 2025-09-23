@@ -99,7 +99,7 @@ void Board::initZobristKeys() {
 }
 
 void Board::makeMove(const Move& move){
-	int oldCastlingRights = this->castlingRights;
+
 
 	BoardState state(this->castlingRights,this->enPassantSquare, this->halfMoveClock, this->
 	zobristHash, move.pieceEatenType);
@@ -203,6 +203,95 @@ void Board::makeMove(const Move& move){
 
 	this->whiteToMove = !this->whiteToMove;
 
+}
+
+void Board::unmakeMove(const Move& move){
+	//Pop history back
+	if (this->history.size() == 0){
+		throw std::invalid_argument("history is empty");
+	}
+
+	BoardState state = this->history[this->history.size() - 1];
+
+	this->history.pop_back(); 
+	
+	
+
+	//Update boards
+	uint64_t* currBoard = this->getBoardOfType(move.pieceType, move.pieceColor); 
+
+	//Delete old position
+	*currBoard |= (1ULL << (move.from));
+
+	//add new Position 
+	*currBoard &= ~(1ULL << (move.to));
+
+
+	//Update pieceEaten
+	if (move.pieceEatenType != None){
+		uint64_t* pieceEatenBoard = this->getBoardOfType(move.pieceEatenType, move.pieceColor == white ? black : white); 
+		*pieceEatenBoard |= (1ULL << (move.to));
+	}	
+
+	//Update en passant capture
+	if(move.isEnPassant){
+		//Delete corresponding piece
+		uint64_t* pieceEatenBoard = this->getBoardOfType(Pawn, move.pieceColor == white ? black : white); 
+		if (move.pieceColor == white){
+			*pieceEatenBoard |= (1ULL << (move.to - 8));
+		}
+		else{
+			*pieceEatenBoard |= (1ULL << (move.to + 8));
+		}
+	}
+
+	//Update new en passant square
+	this->enPassantSquare = state.enPassantSquare;
+
+
+	if (move.promotionPiece != None){
+		uint64_t* promotionBoard = this->getBoardOfType(move.promotionPiece,move.pieceColor);
+		*promotionBoard &= ~ (1ULL << (move.to)); 
+	}
+
+
+
+	if(move.pieceType == King && std::abs(move.from-move.to) == 2){
+		//Move appropiate rook
+		uint64_t* rookBoard = this->getBoardOfType(Rook,move.pieceColor);
+
+		if (move.to == 2){
+			*rookBoard |=(1ULL << (0));
+			*rookBoard &= ~ (1ULL << (3));
+		}
+		else if(move.to == 6){
+			*rookBoard |=(1ULL << (7));
+			*rookBoard &= ~(1ULL << (5));
+		}
+		else if(move.to == 58){
+			*rookBoard |=(1ULL << (56));
+			*rookBoard &= ~(1ULL << (59));
+		}
+		else if(move.to == 62){
+			*rookBoard |= (1ULL << (63));
+			*rookBoard &= ~(1ULL << (61));
+		}
+	}
+	this->castlingRights = state.castlingRights;
+
+	if(move.pieceColor == black){
+		this->fullMoveNumber -= 1;
+	}
+
+	this->halfMoveClock = state.halfMoveClock;
+
+	this->whiteToMove = !this->whiteToMove;
+
+	this->updateZobrist(move);
+
+	if (this->zobristHash != state.zobristHash){
+		throw std::invalid_argument("error with zobrist hash");
+	}
 }
 
 uint64_t* Board::getBoardOfType(PieceType type, PieceColor color){
@@ -338,6 +427,32 @@ uint64_t Board::getCombinedBoard(PieceColor color) const{
 	}
 }
 
+int Board::getKingPosition(PieceColor color) const{
+	uint64_t kingBoard = color == white ? this->whiteKing : this->blackKing;
+    
+    while (kingBoard){
+        int targetSquare = __builtin_ctzll(kingBoard);
+		return targetSquare;
+	}
+	throw std::invalid_argument("No king position found");
+	return -1;
+}
+
+int Board::countMoves(int depth){
+	if (depth == 0){return 1;}
+	std::vector<Move> moves = {};
+	MoveGenerator gen(*this);
+	gen.generateLegalMoves(moves);
+	if (moves.size() == 0){return 1;}
+	int c = 0;
+	for (Move& move : moves){
+		this->makeMove(move);
+		c+= countMoves(depth - 1);
+		this->unmakeMove(move);
+	}
+
+	return c;
+}
 
 //using little endian, bit 0 is a1
 std::pair<PieceType, PieceColor> Board::getPieceTypeAtBit( int bit) const {

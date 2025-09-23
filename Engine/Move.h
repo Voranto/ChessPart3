@@ -22,12 +22,13 @@ public:
 
     Move(PieceType type, PieceColor color, int from, int to, PieceType promotionPiece = None,
         PieceType pieceEatenType = None, bool isEnPassant = false);
-
+    Move();
     std::string toString() const {
         // Convert to algebraic notation like "e2e4" or "e7e8Q"
         std::string s;
         s += squareToString(this->from);
         s += squareToString(this->to);
+        if (promotionPiece != None){s+= ':';s+= pieceTypeNames[promotionPiece];}
         return s;
     }
 

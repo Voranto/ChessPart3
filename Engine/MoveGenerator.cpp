@@ -2,18 +2,41 @@
 #include "Move.h"
 #include <intrin.h>
 #include "Board.h"
+#include <bits/stdc++.h>
 
 
-MoveGenerator::MoveGenerator(const Board& b) : board(b){
+MoveGenerator::MoveGenerator(Board& b) : board(b){
 }
 
-void MoveGenerator::generateLegalMoves(std::vector<Move>& moves) const{
+void MoveGenerator::generatePseudoLegalMoves(std::vector<Move>& moves) const{
+    
     generateKingMoves(moves);
     generateKnightMoves(moves);
     generateRookMoves(moves);
     generateBishopMoves(moves);
     generateQueenMoves(moves);
     generatePawnMoves(moves);
+}
+
+void MoveGenerator::generateLegalMoves(std::vector<Move>& moves){
+    generatePseudoLegalMoves(moves);
+    moves.erase(
+        std::remove_if(moves.begin(), moves.end(),
+                    [this](Move &x){ return !isLegal(x); }), 
+        moves.end()
+    );
+}
+
+bool MoveGenerator::isLegal(Move& move){
+    board.makeMove(move);
+    int kingPos = board.getKingPosition(board.whiteToMove ? black : white);
+    std::vector<Move> attacks = {};
+    generatePseudoLegalMoves(attacks);
+    for (Move& response : attacks){
+        if (response.to == kingPos){board.unmakeMove(move); return false;}
+    }
+    board.unmakeMove(move);
+    return true;
 }
 
 //REMEMBER CASTLING
@@ -30,12 +53,12 @@ void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
                 board.getPieceTypeAtBit(1) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(2) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(3) == std::make_pair(None,white)){
-                moves.push_back(Move(King,white,4,6));
+                moves.push_back(Move(King,white,4,2));
             }
             if((board.castlingRights & (1ULL << 1)) != 0 &&
                 board.getPieceTypeAtBit(5) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(6) == std::make_pair(None,white) ){
-                moves.push_back(Move(King,white,4,2));
+                moves.push_back(Move(King,white,4,6));
             }
         }else{
             if((board.castlingRights & (1ULL << 3)) != 0 &&
@@ -171,12 +194,20 @@ void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
             int targetAttack = __builtin_ctzll(pawnAttacks);
             pawnAttacks &= pawnAttacks -1;
             PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
-            if ((color == white && targetSquare > 55)  | (color == black && targetSquare < 8)){
+            if ((color == white && targetAttack > 55)  | (color == black && targetAttack < 8)){
                 for (int i = 1; i < 6; i++){
                     moves.push_back(Move(Pawn,color, targetSquare,targetAttack,static_cast<PieceType>(i),pieceEatenType,targetAttack == board.enPassantSquare));
                 }
             }
             else{
+                if (std::abs(targetAttack - targetSquare) == 16){
+                    int direction = color == white ? 8 : -8;
+                    if (board.getPieceTypeAtBit(targetSquare + direction).first != None){
+                        continue;
+                    }
+                }
+
+
                 Move moveToAdd = Move(Pawn,color, targetSquare,targetAttack,None,pieceEatenType,targetAttack == board.enPassantSquare);
 
                 moves.push_back(moveToAdd);
@@ -407,11 +438,11 @@ void MoveGenerator::initPawnAttacks(){
             }
 
             // Diagonal captures
-            if (row < 7  && col > 0) {
-                blackAttack |= 1ULL << (bitIndex + 7);  // left capture
+            if (row < 7  && col < 7) {
+                blackAttack |= 1ULL << (bitIndex - 7);  // left capture
             }
-            if (row < 7 && col < 7) {
-                blackAttack |= 1ULL << (bitIndex + 9);  // right capture
+            if (row < 7 && col > 0 ) {
+                blackAttack |= 1ULL << (bitIndex - 9);  // right capture
             }
 
             WhitePawnPush[bitIndex] = whitePush;
@@ -421,6 +452,7 @@ void MoveGenerator::initPawnAttacks(){
             BlackPawnPush[bitIndex] = blackPush;    // single-square push
             BlackPawnDouble[bitIndex] = blackDouble;  // double push (only from rank 2)
             BlackPawnAttacks[bitIndex] = blackAttack;
+            
         }
     }
 

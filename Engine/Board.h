@@ -53,6 +53,7 @@ public:
 	void unmakeMove(const Move& move);
 	bool isSquareAttacked(int square, bool byWhite) const;
 
+	int getKingPosition(PieceColor color) const;
 	uint64_t getCombinedBoard(PieceColor color) const;
 
 	std::pair<PieceType, PieceColor> getPieceTypeAtBit(int bit) const;
@@ -87,12 +88,35 @@ public:
 		std::cout << "EnPassant: " << enPassantSquare << "\n";
 	};
 
-	
+	int countMoves(int depth);
+
 
 	void initZobristKeys();
 	void updateZobrist(const Move& move);
 
 	uint64_t* getBoardOfType(PieceType type, PieceColor color);
+
+
+	bool operator==(const Board& other) const {
+		return whitePawns   == other.whitePawns &&
+			whiteKnights == other.whiteKnights &&
+			whiteBishops == other.whiteBishops &&
+			whiteRooks   == other.whiteRooks &&
+			whiteQueens  == other.whiteQueens &&
+			whiteKing    == other.whiteKing &&
+			blackPawns   == other.blackPawns &&
+			blackKnights == other.blackKnights &&
+			blackBishops == other.blackBishops &&
+			blackRooks   == other.blackRooks &&
+			blackQueens  == other.blackQueens &&
+			blackKing    == other.blackKing &&
+			castlingRights == other.castlingRights &&
+			enPassantSquare == other.enPassantSquare &&
+			whiteToMove == other.whiteToMove;
+	}
+	bool operator!=(const Board& other) const {
+    return !(*this == other);
+}
 };
 
 
