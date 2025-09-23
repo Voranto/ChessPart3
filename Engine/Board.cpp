@@ -441,7 +441,7 @@ int Board::getKingPosition(PieceColor color) const{
 int Board::countMoves(int depth){
 	if (depth == 0){return 1;}
 	std::vector<Move> moves = {};
-	MoveGenerator gen(*this);
+	MoveGenerator gen(*this,true);
 	gen.generateLegalMoves(moves);
 	if (moves.size() == 0){return 0;}
 	int c = 0;

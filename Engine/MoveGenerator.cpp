@@ -5,7 +5,53 @@
 #include <bits/stdc++.h>
 
 
-MoveGenerator::MoveGenerator(Board& b) : board(b){
+MoveGenerator::MoveGenerator(Board& b, bool fast) : board(b){
+    this->fast = fast;
+}
+
+bool MoveGenerator::isSquareAttacked(int square, PieceColor oppositeColor){
+    //mask for knights
+    uint64_t* knightBoard = board.getBoardOfType(Knight, oppositeColor);
+    if (*knightBoard & knightAttacks[square] != 0){
+        return true;
+    }
+
+    //pawns
+    if (oppositeColor == white) {
+    if (BlackPawnAttacks[square] & *board.getBoardOfType(Pawn, white)) return true;
+    } else {
+        if (WhitePawnAttacks[square] & *board.getBoardOfType(Pawn, black)) return true;
+    }
+
+
+    //Bishops
+    uint64_t* bishopBoard = board.getBoardOfType(Bishop, oppositeColor);
+    uint64_t currentBishopAttacks = getBishopAttacks(square,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+    if ((*bishopBoard & currentBishopAttacks) != 0){
+        return true;
+    }
+
+    //Rooks
+    uint64_t* rookBoard = board.getBoardOfType(Rook, oppositeColor);
+    uint64_t currentRookAttacks = getRookAttacks(square,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+    if ((*rookBoard & currentRookAttacks) != 0){
+        return true;
+    }
+
+    //Queen
+    uint64_t* queenBoard = board.getBoardOfType(Queen, oppositeColor);
+    uint64_t currentQueenAttacks = getRookAttacks(square,(board.getCombinedBoard(white) | board.getCombinedBoard(black)))
+                                    |getBishopAttacks(square,(board.getCombinedBoard(white) | board.getCombinedBoard(black)));
+    if ((*queenBoard & currentQueenAttacks) != 0){
+        return true;
+    }
+
+    //King
+    uint64_t* kingBoard = board.getBoardOfType(King, oppositeColor);
+    if ((*kingBoard & kingAttacks[square]) != 0){
+        return true;
+    }
+    return false;
 }
 
 void MoveGenerator::generatePseudoLegalMoves(std::vector<Move>& moves) const{
@@ -27,17 +73,31 @@ void MoveGenerator::generateLegalMoves(std::vector<Move>& moves){
     );
 }
 
+
+
 bool MoveGenerator::isLegal(Move& move){
-    board.makeMove(move);
-    int kingPos = board.getKingPosition(board.whiteToMove ? black : white);
-    std::vector<Move> attacks = {};
-    generatePseudoLegalMoves(attacks);
-    for (Move& response : attacks){
-        if (response.to == kingPos){board.unmakeMove(move); return false;}
+    
+    
+    //-----------OPTION 1
+    if (fast){
+        board.makeMove(move);
+        bool ans = !isSquareAttacked(board.getKingPosition(board.whiteToMove ? black : white),board.whiteToMove ? white : black);
+        board.unmakeMove(move);
+        return ans;
     }
-    board.unmakeMove(move);
-    return true;
-}
+    else{
+    //--------OPTION 2 ----------
+        board.makeMove(move);
+        int kingPos = board.getKingPosition(board.whiteToMove ? black : white);
+        std::vector<Move> attacks = {};
+        generatePseudoLegalMoves(attacks);
+        for (Move& response : attacks){
+            if (response.to == kingPos){board.unmakeMove(move); return false;}
+        }
+        board.unmakeMove(move);
+        return true;
+    }
+    }
 
 //REMEMBER CASTLING
 void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {

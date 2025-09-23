@@ -8,7 +8,7 @@
 
 class MoveGenerator{
 	public:
-		explicit MoveGenerator(Board& board);
+		explicit MoveGenerator(Board& board  , bool fast= true);
 
 		void generateLegalMoves(std::vector<Move>& moves);
 		void generatePseudoLegalMoves(std::vector<Move>& moves) const;
@@ -23,6 +23,8 @@ class MoveGenerator{
 
 	private:
     		Board& board;
+			bool fast;
+
 
 			static uint64_t knightAttacks[64]; // all squares a knight can jump to
 			static uint64_t kingAttacks[64];   // all squares a king can move to
@@ -59,7 +61,8 @@ class MoveGenerator{
     		bool isLegal(Move& move);
 
     		// Attack utilities
-    		uint64_t attacksFromSquare(int square, PieceType piece) const;
+    		bool isSquareAttacked(int square, PieceColor oppositeColor);
+
 
 			static uint64_t generateRookMask(int sq);
 			static uint64_t generateBishopMask(int sq);

@@ -19,6 +19,8 @@
 #include <fstream>
 #include "Engine/MoveGenerator.h"
 #include <bits/stdc++.h>
+#include <chrono>
+
 
 void printBitboard(uint64_t board) {
     std::bitset<64> bits(board);
@@ -35,6 +37,7 @@ bool comp(Move a, Move b){
     return a.toString() < b.toString();
 }
 
+
 int main()
 {
     MoveGenerator::initKnightAttacks();
@@ -45,8 +48,9 @@ int main()
     Board board = Board();
     board.setStartingPosition();
     
-    
+    MoveGenerator genSlow(board,false);
     MoveGenerator gen(board);
+
     std::vector<Move> moves = {};
     std::vector<Move> movesDone = {};
     int choice = 0;
@@ -55,23 +59,28 @@ int main()
     moves.clear();
     gen.generateLegalMoves(moves);
 
-    
-
     std::sort(moves.begin(),moves.end(),comp);
 
     std::cout << "Size" << moves.size() << std::endl;
     int c = 0;
     int total = 0;
     int ans ;
+    using namespace std::chrono;
+
+    auto start = high_resolution_clock::now();
+
     for (Move move : moves){
         board.makeMove(move);
-        ans = board.countMoves(5);
+        ans = board.countMoves(4);
         std::cout << c << ". "<< move.toString()  << ":" << ans << std::endl;
         total+= ans;
         c++;
         board.unmakeMove(move);
     }
     std::cout << total << std::endl;
-    
+    auto end = high_resolution_clock::now();
+    auto duration = duration_cast<seconds>(end - start);
+
+    std::cout << "Time taken: " << duration.count() << " seconds\n";
         
 }
