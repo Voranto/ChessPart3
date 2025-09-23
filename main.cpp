@@ -35,8 +35,6 @@ bool comp(Move a, Move b){
     return a.toString() < b.toString();
 }
 
-
-
 int main()
 {
     MoveGenerator::initKnightAttacks();
@@ -48,8 +46,6 @@ int main()
     board.setStartingPosition();
     
     
-
-
     MoveGenerator gen(board);
     std::vector<Move> moves = {};
     std::vector<Move> movesDone = {};
@@ -59,17 +55,23 @@ int main()
     moves.clear();
     gen.generateLegalMoves(moves);
 
+    
+
     std::sort(moves.begin(),moves.end(),comp);
 
     std::cout << "Size" << moves.size() << std::endl;
     int c = 0;
+    int total = 0;
+    int ans ;
     for (Move move : moves){
         board.makeMove(move);
-        std::cout << c << ". "<< move.toString()  << ":" << board.countMoves(4) << std::endl;
+        ans = board.countMoves(5);
+        std::cout << c << ". "<< move.toString()  << ":" << ans << std::endl;
+        total+= ans;
         c++;
         board.unmakeMove(move);
     }
-    std::cout << board.countMoves(5) << std::endl;
+    std::cout << total << std::endl;
     
         
 }

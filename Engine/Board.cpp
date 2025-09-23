@@ -443,7 +443,7 @@ int Board::countMoves(int depth){
 	std::vector<Move> moves = {};
 	MoveGenerator gen(*this);
 	gen.generateLegalMoves(moves);
-	if (moves.size() == 0){return 1;}
+	if (moves.size() == 0){return 0;}
 	int c = 0;
 	for (Move& move : moves){
 		this->makeMove(move);
