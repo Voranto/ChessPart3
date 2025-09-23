@@ -1,7 +1,6 @@
 #pragma once
-
 enum PieceType {
-	Pawn,Queen,Bishop,Rook,Knight,King,None
+	Pawn,Knight,Bishop,Rook,Queen,King,None
 };
 
-inline const char* pieceTypeNames[] = { "Pawn","Queen","Bishop","Rook","Knight","King","None"};
+extern const char* pieceTypeNames[];

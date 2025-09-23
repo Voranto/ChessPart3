@@ -1,11 +1,11 @@
 #pragma once
 #include "GUI.h"
-#include "Piece.h"
+#include "../Engine/Board.h"
 
 class ChessGUI: public GUI
 {
 public:
-	Chessboard chessboard;
+	Board chessboard;
 
 	sf::Texture whitePawnTexture;
 	sf::Texture blackPawnTexture;
