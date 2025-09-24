@@ -12,7 +12,7 @@ MoveGenerator::MoveGenerator(Board& b, bool fast) : board(b){
 bool MoveGenerator::isSquareAttacked(int square, PieceColor oppositeColor){
     //mask for knights
     uint64_t* knightBoard = board.getBoardOfType(Knight, oppositeColor);
-    if (*knightBoard & knightAttacks[square] != 0){
+    if ((*knightBoard & knightAttacks[square]) != 0){
         return true;
     }
 
