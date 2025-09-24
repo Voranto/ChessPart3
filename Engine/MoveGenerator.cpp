@@ -255,7 +255,7 @@ void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
             pawnAttacks &= pawnAttacks -1;
             PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
             if ((color == white && targetAttack > 55)  | (color == black && targetAttack < 8)){
-                for (int i = 1; i < 6; i++){
+                for (int i = 1; i < 5; i++){
                     moves.push_back(Move(Pawn,color, targetSquare,targetAttack,static_cast<PieceType>(i),pieceEatenType,targetAttack == board.enPassantSquare));
                 }
             }

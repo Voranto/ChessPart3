@@ -38,6 +38,46 @@ int castlingRightsAfterMove(const Move& move, int oldCastling){
 	return newCastling;
 }
 
+void Board::parseFEN(std::string FEN){
+	int n = FEN.size();
+	int currentX = 0, currentY = 0;
+	for (int i = 0; i < n; i++) {
+		char currentChar = FEN[i];
+		if (currentChar == ' ') {
+			i++;
+			break;
+		}
+		else if (currentChar == '/') {
+			currentY++;
+			currentX = 0;
+			continue;
+		}
+		if (isdigit(currentChar)) {
+			currentX += currentChar - '0';
+		}
+		else {
+			int oneDimensionalIndex = (56 - currentY * 8) + currentX;
+
+			switch (currentChar) {
+			case 'p': this->blackPawns |= (1ULL << ( oneDimensionalIndex)); break;
+			case 'r': this->blackRooks |= (1ULL << (oneDimensionalIndex)); break;
+			case 'b': this->blackBishops |= (1ULL << (oneDimensionalIndex)); break;
+			case 'n': this->blackKnights |= (1ULL << (oneDimensionalIndex)); break;
+			case 'k': this->blackKing |= (1ULL << (oneDimensionalIndex)); break;
+			case 'q': this->blackQueens |= (1ULL << (oneDimensionalIndex)); break;
+			case 'P': this->whitePawns |= (1ULL << (oneDimensionalIndex)); break;
+			case 'R': this->whiteRooks |= (1ULL << (oneDimensionalIndex)); break;
+			case 'B': this->whiteBishops |= (1ULL << (oneDimensionalIndex)); break;
+			case 'N': this->whiteKnights |= (1ULL << (oneDimensionalIndex)); break;
+			case 'K': this->whiteKing |= (1ULL << (oneDimensionalIndex)); break;
+			case 'Q': this->whiteQueens |= (1ULL << (oneDimensionalIndex)); break;
+			}
+			currentX++;
+		
+	}
+	}
+}
+
 
 Board::Board() {
 	
@@ -388,27 +428,27 @@ void Board::setStartingPosition() {
 }
 
 void Board::setTestingPosition(){
-	whiteToMove = true;
 
-	//setting up board (LITTLE ENDIAN)
-	whitePawns = (1ULL << 38);
-	whiteRooks = 0ULL;
-	whiteKnights = 0ULL;
-	whiteBishops = 0ULL;
-	whiteQueens = 0ULL;
-	whiteKing = 0ULL;
-	
-	blackPawns = (1ULL << 37);
-	blackRooks = 0ULL;
-	blackBishops = 0ULL;
-	blackKnights = 0ULL;
-	blackQueens = 0ULL;
-	blackKing = 0ULL;
+    whiteToMove = true;
 
-	enPassantSquare = 45;
-	whitePieces = whitePawns | whiteRooks | whiteKnights | whiteBishops | whiteQueens | whiteKing;
-	blackPieces = blackPawns | blackRooks | blackKnights | blackBishops | blackQueens | blackKing;
-	allPieces = whitePieces | blackPieces;
+    whitePawns   = 0x000000001C003B00ULL;
+    whiteKnights = 0x0000000000240000ULL;
+    whiteBishops = 0x0000000000001004ULL;
+    whiteRooks   = 0x0000000000000021ULL;
+    whiteQueens  = 0x0000000000000008ULL;
+    whiteKing    = 0x0000000000000040ULL;
+
+    blackPawns   = 0x00D8200818000000ULL;
+    blackKnights = 0x0220000002000000ULL;
+    blackBishops = 0x0440000000000000ULL;
+    blackRooks   = 0x8200000000000000ULL;
+    blackQueens  = 0x0800000000000000ULL;
+    blackKing    = 0x4000000000000000ULL;
+
+    whitePieces = whitePawns | whiteKnights | whiteBishops | whiteRooks | whiteQueens | whiteKing;
+    blackPieces = blackPawns | blackKnights | blackBishops | blackRooks | blackQueens | blackKing;
+    allPieces   = whitePieces | blackPieces;
+
 }
 
 //helper functions

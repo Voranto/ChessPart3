@@ -88,6 +88,8 @@ public:
 		std::cout << "EnPassant: " << enPassantSquare << "\n";
 	};
 
+	void parseFEN(std::string FEN);
+
 	int countMoves(int depth);
 
 

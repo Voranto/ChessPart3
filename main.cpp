@@ -46,8 +46,13 @@ int main()
     MoveGenerator::initPawnAttacks();
 
     Board board = Board();
-    board.setStartingPosition();
+    board.parseFEN("3B1K1k/p7/1bp1rP2/3PP1Q1/r5p1/8/1P2R3/2R5 w - - 0 1");
+    board.castlingRights = 0;
+    board.whiteToMove = true;
+    board.enPassantSquare = -1;
+    board.print();
     
+
     MoveGenerator genSlow(board,false);
     MoveGenerator gen(board);
 
