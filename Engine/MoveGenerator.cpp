@@ -54,23 +54,25 @@ bool MoveGenerator::isSquareAttacked(int square, PieceColor oppositeColor){
     return false;
 }
 
-void MoveGenerator::generatePseudoLegalMoves(std::vector<Move>& moves) const{
+void MoveGenerator::generatePseudoLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount , int currentDepth) const{
     
-    generateKingMoves(moves);
-    generateKnightMoves(moves);
-    generateRookMoves(moves);
-    generateBishopMoves(moves);
-    generateQueenMoves(moves);
-    generatePawnMoves(moves);
+    generateKingMoves(moves,moveCount,currentDepth);
+    generateKnightMoves(moves,moveCount,currentDepth);
+    generateRookMoves(moves,moveCount,currentDepth);
+    generateBishopMoves(moves,moveCount,currentDepth);
+    generateQueenMoves(moves,moveCount,currentDepth);
+    generatePawnMoves(moves,moveCount,currentDepth);
 }
 
-void MoveGenerator::generateLegalMoves(std::vector<Move>& moves){
-    generatePseudoLegalMoves(moves);
-    moves.erase(
-        std::remove_if(moves.begin(), moves.end(),
-                    [this](Move &x){ return !isLegal(x); }), 
-        moves.end()
-    );
+void MoveGenerator::generateLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount , int currentDepth){
+    generatePseudoLegalMoves(moves, moveCount,currentDepth);
+    int newCount = 0;
+    for (int i = 0; i < moveCount; i++) {
+        if (isLegal(moves[currentDepth][i])) {
+            moves[currentDepth][newCount++] = moves[currentDepth][i];  // keep only legal ones
+        }
+    }
+    moveCount = newCount;
 }
 
 
@@ -79,28 +81,17 @@ bool MoveGenerator::isLegal(Move& move){
     
     
     //-----------OPTION 1
-    if (fast){
-        board.makeMove(move);
-        bool ans = !isSquareAttacked(board.getKingPosition(board.whiteToMove ? black : white),board.whiteToMove ? white : black);
-        board.unmakeMove(move);
-        return ans;
-    }
-    else{
-    //--------OPTION 2 ----------
-        board.makeMove(move);
-        int kingPos = board.getKingPosition(board.whiteToMove ? black : white);
-        std::vector<Move> attacks = {};
-        generatePseudoLegalMoves(attacks);
-        for (Move& response : attacks){
-            if (response.to == kingPos){board.unmakeMove(move); return false;}
-        }
-        board.unmakeMove(move);
-        return true;
-    }
+
+    board.makeMove(move);
+    bool ans = !isSquareAttacked(board.getKingPosition(board.whiteToMove ? black : white),board.whiteToMove ? white : black);
+    board.unmakeMove(move);
+    return ans;
+
+    
     }
 
 //REMEMBER CASTLING
-void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
+void MoveGenerator::generateKingMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t kingBoard = color == white ? board.whiteKing : board.blackKing;
     
@@ -113,24 +104,24 @@ void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
                 board.getPieceTypeAtBit(1) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(2) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(3) == std::make_pair(None,white)){
-                moves.push_back(Move(King,white,4,2));
+                moves[currentDepth][moveCount++] = Move(King,white,4,2);
             }
             if((board.castlingRights & (1ULL << 1)) != 0 &&
                 board.getPieceTypeAtBit(5) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(6) == std::make_pair(None,white) ){
-                moves.push_back(Move(King,white,4,6));
+                moves[currentDepth][moveCount++] = Move(King,white,4,6);
             }
         }else{
             if((board.castlingRights & (1ULL << 3)) != 0 &&
                 board.getPieceTypeAtBit(57) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(58) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(59) == std::make_pair(None,white)){
-                moves.push_back(Move(King,black,60,58));
+                moves[currentDepth][moveCount++] = Move(King,black,60,58);
             }
             if((board.castlingRights & (1ULL << 2)) != 0 &&
                 board.getPieceTypeAtBit(61) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(62) == std::make_pair(None,white) ){
-                moves.push_back(Move(King,white,60,62));
+                moves[currentDepth][moveCount++] = Move(King,black,60,62);
             }
         }
 
@@ -144,15 +135,14 @@ void MoveGenerator::generateKingMoves(std::vector<Move>& moves) const {
             PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
 
             Move moveToAdd = Move(King,color, targetSquare,targetAttack,None,pieceEatenType,false);
-
-            moves.push_back(moveToAdd);
+            moves[currentDepth][moveCount++] = moveToAdd;
         }
 
 
     }
 }
 
-void MoveGenerator::generateKnightMoves(std::vector<Move>& moves) const {
+void MoveGenerator::generateKnightMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t knightsBoard = color == white ? board.whiteKnights : board.blackKnights;
     
@@ -169,15 +159,14 @@ void MoveGenerator::generateKnightMoves(std::vector<Move>& moves) const {
             PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
 
             Move moveToAdd = Move(Knight,color, targetSquare,targetAttack,None,pieceEatenType,false);
-
-            moves.push_back(moveToAdd);
+            moves[currentDepth][moveCount++] = moveToAdd;
         }
 
 
     }
 }
 
-void MoveGenerator::generateRookMoves(std::vector<Move>& moves) const {
+void MoveGenerator::generateRookMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t rookBoard = color == white ? board.whiteRooks : board.blackRooks;
     while (rookBoard){
@@ -193,12 +182,12 @@ void MoveGenerator::generateRookMoves(std::vector<Move>& moves) const {
 
             Move moveToAdd = Move(Rook,color, targetSquare,targetAttack,None,pieceEatenType,false);
 
-            moves.push_back(moveToAdd);
+            moves[currentDepth][moveCount++] = moveToAdd;
         }
     }
 }
 
-void MoveGenerator::generateBishopMoves(std::vector<Move>& moves) const {
+void MoveGenerator::generateBishopMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t bishopBoard = color == white ? board.whiteBishops : board.blackBishops;
     while (bishopBoard){
@@ -214,12 +203,12 @@ void MoveGenerator::generateBishopMoves(std::vector<Move>& moves) const {
 
             Move moveToAdd = Move(Bishop,color, targetSquare,targetAttack,None,pieceEatenType,false);
 
-            moves.push_back(moveToAdd);
+            moves[currentDepth][moveCount++] = moveToAdd;
         }
     }
 }
 
-void MoveGenerator::generateQueenMoves(std::vector<Move>& moves) const {
+void MoveGenerator::generateQueenMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t queenBoard = color == white ? board.whiteQueens : board.blackQueens;
     while (queenBoard){
@@ -237,12 +226,12 @@ void MoveGenerator::generateQueenMoves(std::vector<Move>& moves) const {
 
             Move moveToAdd = Move(Queen,color, targetSquare,targetAttack,None,pieceEatenType,false);
 
-            moves.push_back(moveToAdd);
+            moves[currentDepth][moveCount++] = moveToAdd;
         }
     }
 }
 
-void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
+void MoveGenerator::generatePawnMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth)  const {
     PieceColor color = board.whiteToMove == true ? white : black;
     uint64_t pawnBoard = color == white ? board.whitePawns : board.blackPawns;
     while (pawnBoard){
@@ -256,7 +245,7 @@ void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
             PieceType pieceEatenType = board.getPieceTypeAtBit(targetAttack).first;
             if ((color == white && targetAttack > 55)  | (color == black && targetAttack < 8)){
                 for (int i = 1; i < 5; i++){
-                    moves.push_back(Move(Pawn,color, targetSquare,targetAttack,static_cast<PieceType>(i),pieceEatenType,targetAttack == board.enPassantSquare));
+                    moves[currentDepth][moveCount++] = Move(Pawn,color, targetSquare,targetAttack,static_cast<PieceType>(i),pieceEatenType,targetAttack == board.enPassantSquare);
                 }
             }
             else{
@@ -270,7 +259,7 @@ void MoveGenerator::generatePawnMoves(std::vector<Move>& moves)  const {
 
                 Move moveToAdd = Move(Pawn,color, targetSquare,targetAttack,None,pieceEatenType,targetAttack == board.enPassantSquare);
 
-                moves.push_back(moveToAdd);
+                moves[currentDepth][moveCount++] = moveToAdd;
             }
         }
     }

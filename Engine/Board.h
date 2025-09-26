@@ -6,6 +6,17 @@
 #include <iomanip>
 #pragma once
 
+#ifndef BOARD_H
+#define BOARD_H
+
+#include "Move.h"
+
+constexpr int MAX_DEPTH = 6;
+constexpr int MAX_MOVES = 218;
+
+extern Move moves[MAX_DEPTH][MAX_MOVES];  // just a declaration
+
+#endif
 
 
 struct BoardState {

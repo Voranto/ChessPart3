@@ -10,9 +10,9 @@ class MoveGenerator{
 	public:
 		explicit MoveGenerator(Board& board  , bool fast= true);
 
-		void generateLegalMoves(std::vector<Move>& moves);
-		void generatePseudoLegalMoves(std::vector<Move>& moves) const;
-    	void generateCaptures(std::vector<Move>& moves) const;
+		void generateLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth);
+		void generatePseudoLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount , int currentDepth) const;
+    	void generateCaptures(Move (*moves)[MAX_MOVES], int& moveCount) const;
 
 		//Initializers for lookups and magic
 		static void initKnightAttacks();
@@ -48,12 +48,12 @@ class MoveGenerator{
 
 
     // Piece-specific helpers
-    		void generatePawnMoves(std::vector<Move>& moves) const;
-    		void generateKnightMoves(std::vector<Move>& moves) const;
-			void generateBishopMoves(std::vector<Move>& moves) const;
-    		void generateRookMoves(std::vector<Move>& moves) const;
-    		void generateQueenMoves(std::vector<Move>& moves) const;
-    		void generateKingMoves(std::vector<Move>& moves) const;
+    		void generatePawnMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
+    		void generateKnightMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
+			void generateBishopMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
+    		void generateRookMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
+    		void generateQueenMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
+    		void generateKingMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth) const;
 
 			
 

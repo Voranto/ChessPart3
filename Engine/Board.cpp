@@ -5,6 +5,8 @@
 #include "MoveGenerator.h"
 #include <stdexcept>
 
+Move moves[MAX_DEPTH][MAX_MOVES];
+
 uint64_t ZobristTable[12][64]; // 12 piece types 64 squares
 uint64_t ZobristSide;          // Side to move
 uint64_t ZobristCastling[16];  // Castling  rights states
@@ -480,15 +482,17 @@ int Board::getKingPosition(PieceColor color) const{
 
 int Board::countMoves(int depth){
 	if (depth == 0){return 1;}
-	std::vector<Move> moves = {};
+
 	MoveGenerator gen(*this,true);
-	gen.generateLegalMoves(moves);
-	if (moves.size() == 0){return 0;}
+	int moveCount = 0;
+	gen.generateLegalMoves(moves,moveCount,depth);
+	if (moveCount == 0){return 0;}
 	int c = 0;
-	for (Move& move : moves){
-		this->makeMove(move);
+
+	for (int i = 0; i < moveCount; i++){
+		this->makeMove(moves[depth][i]);
 		c+= countMoves(depth - 1);
-		this->unmakeMove(move);
+		this->unmakeMove(moves[depth][i]);
 	}
 
 	return c;

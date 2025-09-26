@@ -22,6 +22,7 @@
 #include <chrono>
 
 
+
 void printBitboard(uint64_t board) {
     std::bitset<64> bits(board);
     for (int rank = 7; rank >= 0; --rank) { // rank 8 to 1
@@ -46,27 +47,26 @@ int main()
     MoveGenerator::initPawnAttacks();
 
     Board board = Board();
-    board.parseFEN("3B1K1k/p7/1bp1rP2/3PP1Q1/r5p1/8/1P2R3/2R5 w - - 0 1");
+    board.setStartingPosition();
     board.castlingRights = 0;
     board.whiteToMove = true;
     board.enPassantSquare = -1;
     board.print();
     
+    
 
-    MoveGenerator genSlow(board,false);
+
     MoveGenerator gen(board);
 
-    std::vector<Move> moves = {};
-    std::vector<Move> movesDone = {};
-    int choice = 0;
     
-    board.print();
-    moves.clear();
-    gen.generateLegalMoves(moves);
+    int moveCount = 0;
 
-    std::sort(moves.begin(),moves.end(),comp);
+    int choice = 0;
 
-    std::cout << "Size" << moves.size() << std::endl;
+
+    gen.generateLegalMoves(moves,moveCount,0);
+
+
     int c = 0;
     int total = 0;
     int ans ;
@@ -74,13 +74,13 @@ int main()
 
     auto start = high_resolution_clock::now();
 
-    for (Move move : moves){
-        board.makeMove(move);
-        ans = board.countMoves(4);
-        std::cout << c << ". "<< move.toString()  << ":" << ans << std::endl;
+    for (int i = 0; i < moveCount; i++){
+        board.makeMove(moves[0][i]);
+        ans = board.countMoves(MAX_DEPTH - 1);
+        std::cout << c << ". "<< moves[0][i].toString()  << ":" << ans << std::endl;
         total+= ans;
         c++;
-        board.unmakeMove(move);
+        board.unmakeMove(moves[0][i]);
     }
     std::cout << total << std::endl;
     auto end = high_resolution_clock::now();
