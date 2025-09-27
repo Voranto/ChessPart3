@@ -37,6 +37,10 @@ int castlingRightsAfterMove(const Move& move, int oldCastling){
             if (move.from == 63) newCastling &= 0b1011; // h8 rook, remove k
         }
     }
+	if (move.to == 0) newCastling &= 0b1110; // a1 rook, remove Q
+	if (move.to == 7) newCastling &= 0b1101; // h1 rook, remove K
+	if (move.to == 56) newCastling &= 0b0111; // a8 rook, remove q
+	if (move.to == 63) newCastling &= 0b1011; // h8 rook, remove k
 	return newCastling;
 }
 
