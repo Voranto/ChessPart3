@@ -13,7 +13,9 @@ class MoveGenerator{
 		void generateLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount, int currentDepth);
 		void generatePseudoLegalMoves(Move (*moves)[MAX_MOVES], int& moveCount , int currentDepth) const;
     	void generateCaptures(Move (*moves)[MAX_MOVES], int& moveCount) const;
+		bool isSquareAttacked(int square, PieceColor oppositeColor);
 
+		
 		//Initializers for lookups and magic
 		static void initKnightAttacks();
 		static void initKingAttacks();
@@ -61,7 +63,7 @@ class MoveGenerator{
     		bool isLegal(Move& move);
 
     		// Attack utilities
-    		bool isSquareAttacked(int square, PieceColor oppositeColor);
+    		
 
 
 			static uint64_t generateRookMask(int sq);

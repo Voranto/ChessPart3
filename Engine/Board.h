@@ -11,10 +11,13 @@
 
 #include "Move.h"
 
-constexpr int MAX_DEPTH = 6;
+constexpr int MAX_DEPTH = 10;
 constexpr int MAX_MOVES = 218;
 
 extern Move moves[MAX_DEPTH][MAX_MOVES];  // just a declaration
+
+constexpr size_t TTSIZE = 1 << 24; // 16M entries
+TTEntry table[TTSIZE];
 
 #endif
 
@@ -62,7 +65,6 @@ public:
 
 	void makeMove(const Move& move);
 	void unmakeMove(const Move& move);
-	bool isSquareAttacked(int square, bool byWhite) const;
 
 	int getKingPosition(PieceColor color) const;
 	uint64_t getCombinedBoard(PieceColor color) const;

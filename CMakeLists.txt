@@ -11,6 +11,8 @@ set(SOURCES
     Engine/pieceColor.cpp
     Engine/MoveGenerator.cpp
     Engine/Move.cpp
+    Engine/Search.cpp
+    Engine/Evaluator.cpp
     main.cpp
 )
 

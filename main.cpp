@@ -20,8 +20,9 @@
 #include "Engine/MoveGenerator.h"
 #include <bits/stdc++.h>
 #include <chrono>
-
-
+#include "Engine/Search.h"
+#include "Engine/Evaluator.h"
+#include "Engine/TTEntry.h"
 
 void printBitboard(uint64_t board) {
     std::bitset<64> bits(board);
@@ -47,9 +48,8 @@ int main()
     MoveGenerator::initPawnAttacks();
 
     Board board = Board();
-    board.setStartingPosition();
-    board.castlingRights = 0;
-    board.whiteToMove = true;
+    board.parseFEN("rnbqkbnr/pppp1ppp/4p3/8/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2");
+    board.whiteToMove = false;
     board.enPassantSquare = -1;
     board.print();
     
@@ -71,21 +71,25 @@ int main()
     int total = 0;
     int ans ;
     using namespace std::chrono;
+    
 
-    auto start = high_resolution_clock::now();
 
-    for (int i = 0; i < moveCount; i++){
-        board.makeMove(moves[0][i]);
-        ans = board.countMoves(MAX_DEPTH - 1);
-        std::cout << c << ". "<< moves[0][i].toString()  << ":" << ans << std::endl;
-        total+= ans;
-        c++;
-        board.unmakeMove(moves[0][i]);
+
+
+    for (int i = 1; i < MAX_DEPTH; i++){
+        auto start = high_resolution_clock::now();
+
+        Search search = Search();
+
+        Move bestMove = search.findBestMove(board,i );
+        std::cout << "DEPTH: " << i << std::endl;
+        std::cout <<"BEST MOVE: " <<  bestMove.toString() << std::endl;
+
+        auto end = high_resolution_clock::now();
+        auto duration = duration_cast<seconds>(end - start);
+
+        std::cout << "Time taken: " << duration.count() << " seconds\n";
+        std::cout << "-------------------------" << std::endl;
     }
-    std::cout << total << std::endl;
-    auto end = high_resolution_clock::now();
-    auto duration = duration_cast<seconds>(end - start);
-
-    std::cout << "Time taken: " << duration.count() << " seconds\n";
         
 }

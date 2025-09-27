@@ -4,6 +4,7 @@
 
 class Search{
 	public: 
+		Search();
 		Move findBestMove(Board& board, int depth);
 
 	private:
