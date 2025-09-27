@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # All your source files
 set(SOURCES
+    Engine/TTEntry.cpp
     Engine/Board.cpp
     Engine/PieceType.cpp
     Engine/pieceColor.cpp

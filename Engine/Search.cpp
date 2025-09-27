@@ -3,12 +3,13 @@
 #include "Move.h"
 #include "MoveGenerator.h"
 #include "Evaluator.h"
-
+#include "TTEntry.h"
 Search::Search(){
     
 }
 
 Move Search::findBestMove(Board& board, int depth) {
+    clearTT();
     MoveGenerator gen(board);
     int moveCount = 0;
     gen.generateLegalMoves(moves, moveCount, 0);
@@ -32,6 +33,20 @@ Move Search::findBestMove(Board& board, int depth) {
 
 
 int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximizingPlayer) {
+    int alphaOrig = alpha;
+    uint64_t key = board.zobristHash;
+
+    // 1️⃣ TT probe
+    if (auto* entry = probeTT(key)) {
+        if (entry->depth >= depth) {
+            if (entry->flag == EXACT) return entry->score;
+            if (entry->flag == LOWERBOUND && entry->score >= beta) return entry->score;
+            if (entry->flag == UPPERBOUND && entry->score <= alpha) return entry->score;
+            
+        }
+    }
+    
+    
     if (depth == 0) {
         return Evaluator::evaluate(board);
     }
@@ -49,6 +64,9 @@ int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximiz
         return 0; 
     }
 
+    Move bestMove;
+    if (auto* entry = probeTT(key)) bestMove = entry->bestMove;
+
     if (maximizingPlayer) {
         int value = INT_MIN;
         for (int i = 0; i < moveCount; i++) {
@@ -64,6 +82,12 @@ int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximiz
                 break; // beta cutoff
             }
         }
+        TTFlag flag;
+        if (value <= alphaOrig) flag = UPPERBOUND;
+        else if (value >= beta) flag = LOWERBOUND;
+        else flag = EXACT;
+
+        storeTT(key, depth, value, flag, bestMove);
         return value;
     } else {
         int value = INT_MAX;
@@ -80,6 +104,13 @@ int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximiz
                 break; // alpha cutoff
             }
         }
+
+        TTFlag flag;
+        if (value <= alphaOrig) flag = UPPERBOUND;
+        else if (value >= beta) flag = LOWERBOUND;
+        else flag = EXACT;
+
+        storeTT(key, depth, value, flag, bestMove);
         return value;
     }
 }

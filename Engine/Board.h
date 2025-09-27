@@ -10,16 +10,17 @@
 #define BOARD_H
 
 #include "Move.h"
+#include "TTEntry.h"
 
 constexpr int MAX_DEPTH = 10;
 constexpr int MAX_MOVES = 218;
 
 extern Move moves[MAX_DEPTH][MAX_MOVES];  // just a declaration
 
-constexpr size_t TTSIZE = 1 << 24; // 16M entries
-TTEntry table[TTSIZE];
+
 
 #endif
+
 
 
 struct BoardState {

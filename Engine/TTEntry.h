@@ -1,4 +1,8 @@
 #include "Move.h"
+#include <bits/stdc++.h>
+
+#pragma once
+
 enum TTFlag { EXACT, LOWERBOUND, UPPERBOUND };
 
 struct TTEntry {
@@ -9,17 +13,23 @@ struct TTEntry {
     Move bestMove;     // 16–32 bits if you pack it efficiently
 };
 
-inline void clear(){
+
+constexpr size_t TTSIZE = 1 << 24; // 16M entries
+extern TTEntry TT[TTSIZE];
+
+
+
+inline void clearTT(){
     std::memset(TT, 0, sizeof(TTEntry) * TTSIZE);
 }
 
-inline TTEntry* probe(uint64_t key) {
+inline TTEntry* probeTT(uint64_t key) {
     size_t idx = key & (TTSIZE - 1);
     TTEntry& e = TT[idx];
     return (e.key == key) ? &e : nullptr;
 }
 
-inline void store(uint64_t key, int depth, int score, TTFlag flag, Move bestMove) {
+inline void storeTT(uint64_t key, int depth, int score, TTFlag flag, Move bestMove) {
     size_t idx = key & (TTSIZE - 1);
     TTEntry& e = TT[idx];
     if (e.key == 0 || depth >= e.depth) {
