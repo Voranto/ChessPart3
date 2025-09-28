@@ -46,7 +46,9 @@ int main()
     MoveGenerator::initKingAttacks();
     MoveGenerator::initSlidingAttacks();
     MoveGenerator::initPawnAttacks();
+    Search::initOpeningTree();
 
+    
     Board board = Board();
     board.parseFEN("rnbqkbnr/pppp1ppp/4p3/8/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2");
     board.whiteToMove = false;

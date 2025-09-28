@@ -8,6 +8,33 @@ Search::Search(){
     
 }
 
+void Search::initOpeningTree(){
+    std::ifstream file("high_elo_openings.csv");
+    
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return data;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string cell;
+        int column = 0;
+
+        while (std::getline(ss, cell, ',')) {
+            column++;
+            if (column == 10){
+                std::cout << cell << std::endl;
+            }
+        }
+
+    }
+
+    file.close();
+
+}
+
 Move Search::findBestMove(Board& board, int depth) {
     clearTT();
     MoveGenerator gen(board);
@@ -55,6 +82,7 @@ int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximiz
     int moveCount = 0;
     gen.generateLegalMoves(moves, moveCount, depth);
 
+
     // If no legal moves → checkmate or stalemate
     if (moveCount == 0) {
         // Convention: high negative if checkmated, 0 for stalemate
@@ -66,6 +94,15 @@ int Search::alphaBeta(Board& board, int depth, int alpha, int beta, bool maximiz
 
     Move bestMove;
     if (auto* entry = probeTT(key)) bestMove = entry->bestMove;
+
+    std::sort(moves[depth], moves[depth] + moveCount, [](const Move& a, const Move& b) {
+        int scoreA = 0, scoreB = 0;
+        if (a.pieceEatenType != None) scoreA = PIECE_VALUES[a.pieceEatenType]- PIECE_VALUES[a.pieceType];
+        if (b.pieceEatenType != None) scoreB = PIECE_VALUES[b.pieceEatenType] - PIECE_VALUES[b.pieceType];
+        if (a.promotionPiece != None) scoreA += 1000;
+        if (b.promotionPiece != None) scoreB += 1000;
+        return scoreA > scoreB; // higher-score first
+    });
 
     if (maximizingPlayer) {
         int value = INT_MIN;

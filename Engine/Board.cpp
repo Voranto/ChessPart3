@@ -84,7 +84,6 @@ void Board::parseFEN(std::string FEN){
 	}
 }
 
-
 Board::Board() {
 	
 
