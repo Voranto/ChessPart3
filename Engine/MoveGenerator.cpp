@@ -100,13 +100,13 @@ void MoveGenerator::generateKingMoves(Move (*moves)[MAX_MOVES], int& moveCount, 
         kingBoard &= kingBoard -1 ;
        //Generate castling moves
         if(board.whiteToMove){
-            if((board.castlingRights & (1ULL << 0)) != 0 &&
+            if((board.castlingRights & (1ULL << 1)) != 0 &&
                 board.getPieceTypeAtBit(1) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(2) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(3) == std::make_pair(None,white)){
                 moves[currentDepth][moveCount++] = Move(King,white,4,2);
             }
-            if((board.castlingRights & (1ULL << 1)) != 0 &&
+            if((board.castlingRights & (1ULL << 0)) != 0 &&
                 board.getPieceTypeAtBit(5) == std::make_pair(None,white) &&
                 board.getPieceTypeAtBit(6) == std::make_pair(None,white) ){
                 moves[currentDepth][moveCount++] = Move(King,white,4,6);

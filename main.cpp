@@ -50,13 +50,11 @@ int main()
 
     
     Board board = Board();
-    board.parseFEN("rnbqkbnr/pppp1ppp/4p3/8/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2");
-    board.whiteToMove = false;
+    board.setStartingPosition();
     board.enPassantSquare = -1;
     board.print();
     
     
-
 
     MoveGenerator gen(board);
 

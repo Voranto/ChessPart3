@@ -144,7 +144,7 @@ void Board::initZobristKeys() {
 }
 
 void Board::makeMove(const Move& move){
-
+	moveHistory.push_back(move);
 
 	BoardState state(this->castlingRights,this->enPassantSquare, this->halfMoveClock, this->
 	zobristHash, move.pieceEatenType);
@@ -251,6 +251,7 @@ void Board::makeMove(const Move& move){
 }
 
 void Board::unmakeMove(const Move& move){
+	moveHistory.pop_back();
 	//Pop history back
 	if (this->history.size() == 0){
 		throw std::invalid_argument("history is empty");

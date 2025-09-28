@@ -59,6 +59,8 @@ public:
 
 	std::vector<BoardState> history;
 	
+	std::vector<Move> moveHistory;
+
 	Board();
 
 	void setStartingPosition();
