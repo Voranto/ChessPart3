@@ -1,12 +1,11 @@
 
-#ifndef GUI_H
-#define GUI_H
+#pragma once
 
 #include "GUI_Screens.h"
 #include "SFML/Graphics.hpp"
 #include "Button.h"
 #include <optional>
-#include "Chessboard.h"
+#include "../Engine/Board.h"
 #include "TextBox.h"
 
 class GUI {
@@ -20,6 +19,7 @@ public:
 
 	void changeMode(GUI_SCREENS newMode);
 
+	GUI(GUI_SCREENS screen, sf::Texture backgroundTexture);
 	GUI(GUI_SCREENS screen);
 	GUI();
 
@@ -37,5 +37,3 @@ public:
 
 	int processEventsAndReturnOnClick(sf::RenderWindow& window);
 };
-
-#endif

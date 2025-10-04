@@ -1,37 +1,80 @@
 #include "ChessGUI.h"
+
 #include <array>
-ChessGUI::ChessGUI(GUI_SCREENS screen, Chessboard board) {
+ChessGUI::ChessGUI(GUI_SCREENS screen, Board board)
+    : GUI(screen),
+      chessboard(board),
+      squareSize(120),
+      selectedPiece(-1, -1, white, Pawn),
+      whitePawnSprite(whitePawnTexture),
+      blackPawnSprite(blackPawnTexture),
+      whiteKnightSprite(whiteKnightTexture),
+      blackKnightSprite(blackKnightTexture),
+      whiteBishopSprite(whiteBishopTexture),
+      blackBishopSprite(blackBishopTexture),
+      whiteRookSprite(whiteRookTexture),
+      blackRookSprite(blackRookTexture),
+      whiteQueenSprite(whiteQueenTexture),
+      blackQueenSprite(blackQueenTexture),
+      whiteKingSprite(whiteKingTexture),
+      blackKingSprite(blackKingTexture)
+{
 	this->mode = screen;
 	this->chessboard = board;
-
+	
 	this->squareSize = 120;
 	this->selectedPiece = Piece(-1,-1,white,Pawn);
 
-	if (!whitePawnTexture.loadFromFile(".\\img\\whitePawn.png")) {
-		std::cerr << "Failed to load whitePawn.png" << std::endl;
+	if (!whitePawnTexture.loadFromFile("..\\assets\\img\\whitePawn.png")) {
+		std::cerr << "Failed to load texture" << std::endl;
 	}
 	this->whitePawnSprite = sf::Sprite(whitePawnTexture);
-	blackPawnTexture.loadFromFile(".\\img\\blackPawn.png");
+
+	if (!blackPawnTexture.loadFromFile("..\\assets\\img\\blackPawn.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackPawnSprite = sf::Sprite(blackPawnTexture);
-	whiteKnightTexture.loadFromFile(".\\img\\whiteKnight.png");
+
+	if (!whiteKnightTexture.loadFromFile("..\\assets\\img\\whiteKnight.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->whiteKnightSprite = sf::Sprite(whiteKnightTexture);
-	blackKnightTexture.loadFromFile(".\\img\\blackKnight.png");
+	if (!blackKnightTexture.loadFromFile("..\\assets\\img\\blackKnight.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackKnightSprite = sf::Sprite(blackKnightTexture);
-	whiteBishopTexture.loadFromFile(".\\img\\whiteBishop.png");
+	if (!whiteBishopTexture.loadFromFile("..\\assets\\img\\whiteBishop.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->whiteBishopSprite = sf::Sprite(whiteBishopTexture);
-	blackBishopTexture.loadFromFile(".\\img\\blackBishop.png");
+	if (!blackBishopTexture.loadFromFile("..\\assets\\img\\blackBishop.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackBishopSprite = sf::Sprite(blackBishopTexture);
-	whiteRookTexture.loadFromFile(".\\img\\whiteRook.png");
+	if (!whiteRookTexture.loadFromFile("..\\assets\\img\\whiteRook.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->whiteRookSprite = sf::Sprite(whiteRookTexture);
-	blackRookTexture.loadFromFile(".\\img\\blackRook.png");
+	if (!blackRookTexture.loadFromFile("..\\assets\\img\\blackRook.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackRookSprite = sf::Sprite(blackRookTexture);
-	whiteQueenTexture.loadFromFile(".\\img\\whiteQueen.png");
+	if (!whiteQueenTexture.loadFromFile("..\\assets\\img\\whiteQueen.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->whiteQueenSprite = sf::Sprite(whiteQueenTexture);
-	blackQueenTexture.loadFromFile(".\\img\\blackQueen.png");
+	if (!blackQueenTexture.loadFromFile("..\\assets\\img\\blackQueen.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackQueenSprite = sf::Sprite(blackQueenTexture);
-	whiteKingTexture.loadFromFile(".\\img\\whiteKing.png");
+	if (!whiteKingTexture.loadFromFile("..\\assets\\img\\whiteKing.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->whiteKingSprite = sf::Sprite(whiteKingTexture);
-	blackKingTexture.loadFromFile(".\\img\\blackKing.png");
+	
+	if (!blackKingTexture.loadFromFile("..\\assets\\img\\blackKing.png")){
+		std::cerr << "Failed to load texture" << std::endl;
+	}
 	this->blackKingSprite = sf::Sprite(blackKingTexture);
 }
 
@@ -46,7 +89,7 @@ void ChessGUI::drawChessBoard(sf::RenderWindow& window, sf::Vector2i offset) {
 			else {
 				rect.setFillColor(sf::Color(222, 218, 146));
 			}
-			rect.setPosition(offset.x + this->squareSize * j, offset.y + this->squareSize * i);
+			rect.setPosition(sf::Vector2f(offset.x + this->squareSize * j, offset.y + this->squareSize * i));
 			window.draw(rect);
 		}
 	}
@@ -77,28 +120,41 @@ void ChessGUI::drawPieces(sf::RenderWindow& window, sf::Vector2i offset) {
 
 }
 
+std::pair<int,int> convertGridCoords(int square){
+	int x = square % 8;
+    int rankFromBottom = square / 8;
+    int y = 7 - rankFromBottom;     // flip back
+    return {x, y};
+}
+
+int convertGridCoords(std::pair<int,int> square){
+	int x = square.first;
+    int y = square.second;
+    int rankFromBottom = 7 - y;     // flip vertically
+    return rankFromBottom * 8 + x;  // little-endian square index
+}
+
 void ChessGUI::drawKnights(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
-
+	sf::Sprite currSprite = color == white ? this->whiteKnightSprite : this->blackKnightSprite;
 	if (color == white) {
 		currBoard = this->chessboard.whiteKnights;
-		currSprite = this->whiteKnightSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackKnights;
-		currSprite = this->blackKnightSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
+
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		x = std::get<0>(gridCoords);
 		y = std::get<1>(gridCoords);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
@@ -110,26 +166,25 @@ void ChessGUI::drawKnights(PieceColor color, sf::RenderWindow& window, sf::Vecto
 
 void ChessGUI::drawPawns(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
+	sf::Sprite currSprite = color == white ? this->whitePawnSprite : this->blackPawnSprite;
 
 	if (color == white) {
 		currBoard = this->chessboard.whitePawns;
-		currSprite = this->whitePawnSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackPawns;
-		currSprite = this->blackPawnSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
 		x = std::get<0>(gridCoords);
 		y = std::get<1>(gridCoords);
@@ -141,26 +196,25 @@ void ChessGUI::drawPawns(PieceColor color, sf::RenderWindow& window, sf::Vector2
 
 void ChessGUI::drawBishops(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
+	sf::Sprite currSprite = color == white ? this->whiteBishopSprite : this->blackBishopSprite;
 
 	if (color == white) {
 		currBoard = this->chessboard.whiteBishops;
-		currSprite = this->whiteBishopSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackBishops;
-		currSprite = this->blackBishopSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
 
 		x = std::get<0>(gridCoords);
@@ -173,26 +227,25 @@ void ChessGUI::drawBishops(PieceColor color, sf::RenderWindow& window, sf::Vecto
 
 void ChessGUI::drawRooks(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
+	sf::Sprite currSprite = color == white ? this->whiteRookSprite : this->blackRookSprite;
 
 	if (color == white) {
 		currBoard = this->chessboard.whiteRooks;
-		currSprite = this->whiteRookSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackRooks;
-		currSprite = this->blackRookSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
 
 		x = std::get<0>(gridCoords);
@@ -205,26 +258,25 @@ void ChessGUI::drawRooks(PieceColor color, sf::RenderWindow& window, sf::Vector2
 
 void ChessGUI::drawKing(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
+	sf::Sprite currSprite = color == white ? this->whiteKingSprite : this->blackKingSprite;
 
 	if (color == white) {
 		currBoard = this->chessboard.whiteKing;
-		currSprite = this->whiteKingSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackKing;
-		currSprite = this->blackKingSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
 
 		x = std::get<0>(gridCoords);
@@ -237,26 +289,25 @@ void ChessGUI::drawKing(PieceColor color, sf::RenderWindow& window, sf::Vector2i
 
 void ChessGUI::drawQueens(PieceColor color, sf::RenderWindow& window, sf::Vector2i offset) {
 	uint64_t currBoard;
-	sf::Sprite currSprite;
+	sf::Sprite currSprite = color == white ? this->whiteQueenSprite : this->blackQueenSprite; 
 
 	if (color == white) {
 		currBoard = this->chessboard.whiteQueens;
-		currSprite = this->whiteQueenSprite;
 	}
 	else {
 		currBoard = this->chessboard.blackQueens;
-		currSprite = this->blackQueenSprite;
 	}
 
-	std::vector<int> indexes = this->chessboard.getBitIndexes(currBoard);
 
 	std::pair<int, int> gridCoords;
 	int x;
 	int y;
 
 
-	for (auto& idx : indexes) {
-		gridCoords = this->chessboard.convertGridCoords(idx);
+	while (currBoard){
+        int targetSquare = __builtin_ctzll(currBoard);
+		currBoard &= currBoard -1 ;
+		gridCoords = convertGridCoords(targetSquare);
 		if (gridCoords == this->selectedPiece.pos) { continue; }
 
 		x = std::get<0>(gridCoords);
@@ -290,45 +341,69 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 		sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 		std::pair<int, int> gridClick = getGridOfClick(mousePos, boardOffset);
 
-		int oneDimensionalClick = this->chessboard.convertGridCoords(gridClick);
+		int oneDimensionalClick = convertGridCoords(gridClick);
 
-		uint64_t combinedSameColorBoard = this->chessboard.getCombinedBoard(this->chessboard.toMove);
-		uint64_t combinedOppositeColorBoard = this->chessboard.getCombinedBoard(this->chessboard.toMove == white ? black : white);
+		uint64_t combinedSameColorBoard = this->chessboard.getCombinedBoard(this->chessboard.whiteToMove ? white : black);
+		uint64_t combinedOppositeColorBoard = this->chessboard.getCombinedBoard(this->chessboard.whiteToMove ? black : white);
 		
 		
 		//If no selected Piece, check for selection
 		if (this->selectedPiece.pos == std::make_pair(-1, -1)) {
-			if ((combinedSameColorBoard & (1ULL << 63 - oneDimensionalClick)) != 0) {
-				this->setSelectedPiece(gridClick, this->chessboard.toMove);
+			if ((combinedSameColorBoard & (1ULL << oneDimensionalClick)) != 0) {
+				this->setSelectedPiece(gridClick, this->chessboard.whiteToMove ? white : black);
 				
 			}
 		}
 		else if (this->selectedPiece.pos != std::make_pair(-1, -1)) {
 
 			//Clicking in and empty square or clicking in square of opposite color
-			if ((((combinedSameColorBoard ) & (1ULL << 63 - oneDimensionalClick)) == 0 )) {
-				Move attemptedMove = Move(this->selectedPiece.type, this->selectedPiece.color, this->selectedPiece.pos, gridPos);
+			if ((((combinedSameColorBoard ) & (1ULL <<oneDimensionalClick)) == 0 )) {
+				Move attemptedMove;
+				MoveGenerator gen(this->chessboard);
+				int moveCount = 0;
+				gen.generateLegalMoves(moves,moveCount,0);
+				bool flag = false;
+				for (int i = 0; i < moveCount; i++){
+					Move currMove = moves[0][i];
+					if (currMove.to == convertGridCoords(gridPos) && currMove.from == convertGridCoords(this->selectedPiece.pos)){
+						flag = true;
+						attemptedMove = currMove;
+					}
+				}
 
-				if (this->isValidMove(attemptedMove)) {
-					this->chessboard.executeMove(attemptedMove);
+				if (flag) {
 					
-					this->clearSelectedPiece();
 
 					if (this->isTherePromotion(attemptedMove)) {
 						this->handlePromotions(attemptedMove, window);
 						std::cout << "ended promotion" << std::endl;
 					}
+					this->chessboard.makeMove(attemptedMove);
+					
+					this->clearSelectedPiece();
 
-					if (this->chessboard.toMove == white) {
-						this->chessboard.calculateWhiteMoves();
-						if (this->chessboard.whiteMoves.size() == 0) {
-							std::cout << "CHECKMATE: BLACK WINS" << std::endl;
+					int moveCount = 0;
+					gen.generateLegalMoves(moves,moveCount,0);
+					if (this->chessboard.whiteToMove) {
+				
+						if (moveCount == 0) {
+							if (gen.isSquareAttacked(chessboard.getKingPosition(white),black)){
+								std::cout << "CHECKMATE: BLACK WINS" << std::endl;
+							}
+							else{
+								std::cout << "DRAW" << std::endl;
+							}
+							
 						}
 					}
 					else {
-						this->chessboard.calculateBlackMoves();
-						if (this->chessboard.blackMoves.size() == 0) {
-							std::cout << "CHECKMATE: WHITE WINS" << std::endl;
+						if (moveCount == 0) {
+							if (gen.isSquareAttacked(chessboard.getKingPosition(black),white)){
+								std::cout << "CHECKMATE: WHITE WINS" << std::endl;
+							}
+							else{
+								std::cout << "DRAW" << std::endl;
+							}
 						}
 					}
 					
@@ -338,8 +413,8 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 					this->clearSelectedPiece();
 				}
 			}
-			if (((combinedSameColorBoard) & (1ULL << 63 - oneDimensionalClick)) != 0) {
-				this->setSelectedPiece(gridClick, this->chessboard.toMove);
+			if (((combinedSameColorBoard) & (1ULL << oneDimensionalClick)) != 0) {
+				this->setSelectedPiece(gridClick, this->chessboard.whiteToMove ? white : black);
 			}
 		}
 	}
@@ -352,29 +427,51 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 		
 		if (centeredMousePos.x >= 0 && centeredMousePos.x <= this->squareSize * 8 &&
 			centeredMousePos.y >= 0 && centeredMousePos.y <= this->squareSize * 8) {
-			Move attemptedMove = Move(this->selectedPiece.type, this->selectedPiece.color, this->selectedPiece.pos, gridPos);
-
-
-			if(this->isValidMove(attemptedMove) ){
-					this->chessboard.executeMove(attemptedMove);
-
-					this->clearSelectedPiece();
+			Move attemptedMove;
+				MoveGenerator gen(this->chessboard);
+				int moveCount = 0;
+				gen.generateLegalMoves(moves,moveCount,0);
+				bool flag = false;
+				for (int i = 0; i < moveCount; i++){
+					Move currMove = moves[0][i];
+					if (currMove.to == convertGridCoords(gridPos) && currMove.from == convertGridCoords(this->selectedPiece.pos)){
+						flag = true;
+						attemptedMove = currMove;
+					}
+				}
+				if (flag) {
+					
 
 					if (this->isTherePromotion(attemptedMove)) {
 						this->handlePromotions(attemptedMove, window);
 						std::cout << "ended promotion" << std::endl;
 					}
+					this->chessboard.makeMove(attemptedMove);
 
-					if (this->chessboard.toMove == white) {
-						this->chessboard.calculateWhiteMoves();
-						if (this->chessboard.whiteMoves.size() == 0) {
-							std::cout << "CHECKMATE: BLACK WINS" << std::endl;
+					this->clearSelectedPiece();
+
+					int moveCount = 0;
+					gen.generateLegalMoves(moves,moveCount,0);
+					if (this->chessboard.whiteToMove) {
+				
+						if (moveCount == 0) {
+							if (gen.isSquareAttacked(chessboard.getKingPosition(white),black)){
+								std::cout << "CHECKMATE: BLACK WINS" << std::endl;
+							}
+							else{
+								std::cout << "DRAW" << std::endl;
+							}
+							
 						}
 					}
 					else {
-						this->chessboard.calculateBlackMoves();
-						if (this->chessboard.blackMoves.size() == 0) {
-							std::cout << "CHECKMATE: WHITE WINS" << std::endl;
+						if (moveCount == 0) {
+							if (gen.isSquareAttacked(chessboard.getKingPosition(black),white)){
+								std::cout << "CHECKMATE: WHITE WINS" << std::endl;
+							}
+							else{
+								std::cout << "DRAW" << std::endl;
+							}
 						}
 					}
 
@@ -386,33 +483,11 @@ void ChessGUI::processClick(int clickEvent, sf::RenderWindow& window, sf::Vector
 	}
 }
 
-bool ChessGUI::isValidMove(Move move) {
-	std::array<Move,MAX_MOVES> movesToCompare;
-
-	int moveCount;
-	if (this->chessboard.toMove == white) {
-		movesToCompare = this->chessboard.whiteMoves;
-		moveCount = this->chessboard.whiteMovesCount;
-	}
-	else {
-		movesToCompare = this->chessboard.blackMoves;
-		moveCount = this->chessboard.blackMovesCount;
-	}
-	Move mv;
-	for (size_t i = 0; i < moveCount; i++) {
-		mv = movesToCompare[i];
-		if (move.equals(mv)) {
-			return true;
-		}
-	}
-	return false;
-
-}
 
 
 void ChessGUI::setSelectedPiece(std::pair<int, int> gridPos, PieceColor color) {
-	int oneDimensionalIndex = this->chessboard.convertGridCoords(gridPos);
-	uint64_t valueToCompare = (1ULL << 63 - oneDimensionalIndex);
+	int oneDimensionalIndex = convertGridCoords(gridPos);
+	uint64_t valueToCompare = (1ULL << oneDimensionalIndex);
 	if (color == white) {
 		if ((this->chessboard.whiteKnights & valueToCompare) != 0) {
 			this->selectedPiece = Piece(gridPos, color, Knight);
@@ -482,6 +557,8 @@ sf::Sprite ChessGUI::getSpriteOfPiece(PieceType type, PieceColor color) {
 		return color == white ? this->whiteKingSprite : this->blackKingSprite;
 		break;
 	}
+	std::cerr << "NO TEXTURE FOUND" << std::endl;
+	return this->whitePawnSprite;
 }
 
 void ChessGUI::drawSelectedPiece(int clickEvent, sf::RenderWindow& window, sf::Vector2i boardOffset) {
@@ -492,7 +569,7 @@ void ChessGUI::drawSelectedPiece(int clickEvent, sf::RenderWindow& window, sf::V
 	sf::Vector2i vectorPos = sf::Vector2i(std::get<0>(this->selectedPiece.pos), std::get<1>(this->selectedPiece.pos));
 	vectorPos *= this->squareSize;
 	vectorPos += boardOffset;
-	spriteToDraw.setScale(2,2);
+	spriteToDraw.setScale(sf::Vector2f(2,2));
 	if (clickEvent == 1) {
 		spriteToDraw.setPosition(sf::Vector2f(vectorPos));
 		window.draw(spriteToDraw);
@@ -511,22 +588,16 @@ void ChessGUI::drawSelectedPiece(int clickEvent, sf::RenderWindow& window, sf::V
 void ChessGUI::drawSelectedPiecePossibilities(int clickEvent, sf::RenderWindow& window, sf::Vector2i boardOffset) {
 	if (this->selectedPiece.pos == std::make_pair(-1, -1)) { return; }
 
-	std::array<Move,MAX_MOVES> movesToCompare;
-	int moveCount;
-	if (this->chessboard.toMove == white) {
-		movesToCompare = this->chessboard.whiteMoves;
-		moveCount = this->chessboard.whiteMovesCount;
-	}
-	else {
-		movesToCompare = this->chessboard.blackMoves;
-		moveCount = this->chessboard.blackMovesCount;
-	}
+	int moveCount = 0;
+	MoveGenerator gen(this->chessboard);
+	gen.generateLegalMoves(moves,moveCount,0);
+
 	sf::Vector2f circlePos;
 	Move move;
 	for (size_t i = 0; i < moveCount; i++) {
-		move = movesToCompare[i];
-		if (move.from == this->selectedPiece.pos) {
-			circlePos = sf::Vector2f(std::get<0>(move.to) * this->squareSize, std::get<1>(move.to) * this->squareSize);
+		move = moves[0][i];
+		if (move.from == convertGridCoords(this->selectedPiece.pos)) {
+			circlePos = sf::Vector2f(std::get<0>(convertGridCoords(move.to)) * this->squareSize, std::get<1>(convertGridCoords(move.to)) * this->squareSize);
 			circlePos += sf::Vector2f(boardOffset);
 			circlePos += sf::Vector2f(40, 40);
 			this->drawCircle(window, circlePos,  20, sf::Color(100, 100, 100));
@@ -581,24 +652,21 @@ void ChessGUI::handlePromotions(Move& move, sf::RenderWindow& window) {
 		clickedButton = this->renderButtons(window, clickEvent == 1);
 
 		if (clickedButton.has_value()) {
-			if (clickedButton.value().textString == "PRINT FEN") {
-				std::cout << this->chessboard.getFEN() << std::endl;
-			}
 			if (clickedButton.value().textString == "QUEEN") {
-				pieceToReturn =  Piece(std::make_pair(-1, -1), move.pieceColor, Queen);
-				break;
+				move.promotionPiece = Queen;
+				return;
 			}
 			if (clickedButton.value().textString == "ROOK") {
-				pieceToReturn = Piece(std::make_pair(-1, -1), move.pieceColor, Rook);
-				break;
+				move.promotionPiece = Rook;
+				return;
 			}
 			if (clickedButton.value().textString == "BISHOP") {
-				pieceToReturn = Piece(std::make_pair(-1, -1), move.pieceColor, Bishop);
-				break;
+				move.promotionPiece = Bishop;
+				return;
 			}
 			if (clickedButton.value().textString == "KNIGHT") {
-				pieceToReturn = Piece(std::make_pair(-1, -1), move.pieceColor, Knight);
-				break;
+				move.promotionPiece = Knight;
+				return;
 			}
 
 		}
@@ -612,25 +680,17 @@ void ChessGUI::handlePromotions(Move& move, sf::RenderWindow& window) {
 	
 	//Delete pawn from board
 	uint64_t* pawnBoard = this->chessboard.getBoardOfType(Pawn, move.pieceColor);
-	int oneDimensionalIndex = this->chessboard.convertGridCoords(move.to);
-	*pawnBoard &= ~(1ULL << 63 - oneDimensionalIndex);
+	int oneDimensionalIndex = move.to;
+	*pawnBoard &= ~(1ULL << oneDimensionalIndex);
 	
 
 	//Add piece of new type
 	uint64_t* pieceBoard = this->chessboard.getBoardOfType(pieceToReturn.type, pieceToReturn.color);
-	*pieceBoard |= (1ULL << 63 - oneDimensionalIndex);
+	*pieceBoard |= (1ULL << oneDimensionalIndex);
 }
 
 bool ChessGUI::isTherePromotion(Move& move) {
-	if (move.pieceType == Pawn) {
-		if (move.pieceColor == black && std::get<1>(move.to) == 7) {
-			return true;
-		}
-		if (move.pieceColor == white && std::get<1>(move.to) == 0) {
-			return true;
-		}
-	}
-	return false;
+	return move.promotionPiece != None;
 }
 
 

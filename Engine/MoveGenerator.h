@@ -15,7 +15,7 @@ class MoveGenerator{
     	void generateCaptures(Move (*moves)[MAX_MOVES], int& moveCount) const;
 		bool isSquareAttacked(int square, PieceColor oppositeColor);
 
-		
+		bool isLegal(Move& move);
 		//Initializers for lookups and magic
 		static void initKnightAttacks();
 		static void initKingAttacks();
@@ -60,7 +60,7 @@ class MoveGenerator{
 			
 
     		// Legality check
-    		bool isLegal(Move& move);
+    		
 
     		// Attack utilities
     		

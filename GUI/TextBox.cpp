@@ -7,7 +7,7 @@ TextBox::TextBox(sf::Vector2f pos, sf::Vector2f size, sf::Color color) {
 	this->color = color;
 	this->isActive = false;
 
-	this->font.loadFromFile(".\\font\\arial.ttf");
+	this->font = sf::Font("..\\assets\\font\\arial.ttf");
 }
 
 
@@ -28,15 +28,16 @@ void TextBox::drawSquare(sf::RenderWindow& window) {
 }
 
 void TextBox::drawText(sf::RenderWindow& window) {
-	sf::Text text(this->text, this->font, this->fontSize);
+	sf::Text text(this->font, this->text, this->fontSize);
 	text.setCharacterSize(this->fontSize);
 	text.setFillColor(sf::Color(0, 0, 0));
-
+	
 
 	sf::Vector2f centerOfSquare = this->pos + sf::Vector2f(this->size.x / 2, this->size.y/2);
 
 	sf::FloatRect textRect = text.getGlobalBounds();
-	sf::Vector2f textSize(textRect.width, textRect.height);
+	
+	sf::Vector2f textSize = textRect.size;
 
 	sf::Vector2f posToDraw = centerOfSquare - sf::Vector2f(textSize.x / 2, textSize.y / 2);
 
@@ -55,28 +56,33 @@ bool TextBox::isHovering(sf::Vector2i mousePos) {
 }
 
 void TextBox::update(sf::Event event) {
-	if (event.type == sf::Event::MouseButtonPressed) {
+
+	if (event.is<sf::Event::MouseButtonPressed>()) {
 		// Check if clicked inside the textbox
 		this->isActive = isHovering(sf::Mouse::getPosition());
 
 	}
 
-	if (isActive && event.type == sf::Event::TextEntered) {
-		if (event.text.unicode == '\b' && !this->text.empty()) {  // Handle Backspace
+	if (isActive && event.is<sf::Event::TextEntered>()) {
+		char textEntered = static_cast<char>(event.getIf<sf::Event::TextEntered>()->unicode);
+
+
+		if (textEntered == '\b' && !this->text.empty()) {  // Handle Backspace
 			this->text.pop_back();
 		}
-		else if (event.text.unicode >= 32 && event.text.unicode < 128) {  // Handle normal input
+		else if (textEntered >= 32 && textEntered < 128) {  // Handle normal input
 			
-			this->text += static_cast<char>(event.text.unicode);
+			this->text += static_cast<char>(textEntered);
 		}
 	}
 
-	if (isActive && event.type == sf::Event::KeyPressed) {
-		if (event.key.control) {  // Detect Ctrl key
-			if (event.key.code == sf::Keyboard::C) {  // Ctrl + C (Copy)
+	if (isActive && event.is<sf::Event::KeyPressed>()) {
+		
+		if (event.getIf<sf::Event::KeyPressed>()->control) {  // Detect Ctrl key
+			if (event.getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::C) {  // Ctrl + C (Copy)
 				sf::Clipboard::setString(this->text);
 			}
-			if (event.key.code == sf::Keyboard::V) {  // Ctrl + V (Paste)
+			if (event.getIf<sf::Event::KeyPressed>()->code == sf::Keyboard::Key::V) {  // Ctrl + V (Paste)
 				this->text += sf::Clipboard::getString();
 			}
 			

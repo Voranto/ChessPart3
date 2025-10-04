@@ -15,8 +15,6 @@ public:
 	sf::Color color;
 	sf::Color colorOnHover;
 	sf::Color currentColor;
-	sf::SoundBuffer soundOnClickBuffer;
-	sf::Sound soundOnClick;
 
 	Button(sf::Vector2f textCenterPos, sf::Font font, std::string text, int fontSize, sf::Color color,sf::Color colorOnHover, float rectAmplifyingValue);
 

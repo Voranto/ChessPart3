@@ -6,8 +6,8 @@
 class Search{
 	public: 
 		static MoveTree openingTree;
-		static void initOpeningTree();
-		
+		static void initOpeningTreeCSV();
+		static void initOpeningTreeTXT();
 		Search();
 
 		Move findBestMove(Board& board, int depth);

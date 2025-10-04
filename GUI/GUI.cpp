@@ -3,15 +3,19 @@
 #include <optional>
 #include "Button.h"
 #include "GUI_Screens.h"
+
+sf::Texture emptyTexture = sf::Texture();
+
+
 void GUI::changeMode(GUI_SCREENS newMode) {
     this->mode = newMode;
 }
 
-GUI::GUI(GUI_SCREENS screen) {
+GUI::GUI(GUI_SCREENS screen, sf::Texture backgroundTexture) : backgroundSprite(backgroundTexture) {
     this->mode = screen;
 }
-GUI::GUI(){}
-
+GUI::GUI() : backgroundSprite(emptyTexture) {}
+GUI::GUI(GUI_SCREENS screen) : backgroundSprite(emptyTexture) {this->mode = screen;}
 
 std::optional<Button> GUI::renderButtons(sf::RenderWindow& window, bool hasClicked) {
     bool isClicked;
@@ -35,11 +39,11 @@ void GUI::setBackground(sf::Texture& texture,sf::Vector2f windowSize) {
     sf::FloatRect bounds = this->backgroundSprite.getLocalBounds();
 
     // Calculate scale factors
-    float scaleX = windowSize.x / bounds.width;
-    float scaleY = windowSize.y / bounds.height;
+    float scaleX = windowSize.x / bounds.size.x;
+    float scaleY = windowSize.y / bounds.size.y;
 
     // Apply scale
-    this->backgroundSprite.setScale(scaleX, scaleY);
+    this->backgroundSprite.setScale(sf::Vector2f(scaleX, scaleY));
 }
 
 void GUI::drawCircle(sf::RenderWindow& window, sf::Vector2f pos, float radius, sf::Color color) {
@@ -54,33 +58,40 @@ void GUI::drawCircle(sf::RenderWindow& window, sf::Vector2f pos, float radius, s
 //If button released return 2
 // If button is currently pressed but not in the current event return 3
 int GUI::processEventsAndReturnOnClick(sf::RenderWindow& window) {
-    sf::Event event;
-    while (window.pollEvent(event))
+    while (const std::optional ev = window.pollEvent())
     {
+        if (ev.has_value()){
+            sf::Event event = ev.value();
 
-        for (TextBox& tb : this->textBoxes) {
-            tb.update(event);
-        }
-
-
-        if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
-            window.close();
-        }
-        if (event.type == sf::Event::MouseButtonPressed)
-        {
-            if (event.mouseButton.button == sf::Mouse::Left)
-            {
-                return 1;
+            
+            for (TextBox& tb : this->textBoxes) {
+                tb.update(event);
             }
-        }
-        if (event.type == sf::Event::MouseButtonReleased)
-        {
-            if (event.mouseButton.button == sf::Mouse::Left)
+            
+
+
+            if (event.is<sf::Event::Closed>() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) {
+                window.close();
+            }
+            if (event.is<sf::Event::MouseButtonPressed>())
+            {   
+                
+                if (event.getIf<sf::Event::MouseButtonPressed>()->button == sf::Mouse::Button::Left)
+                {
+                    return 1;
+                }
+            }
+            
+            if (event.is<sf::Event::MouseButtonReleased>())
             {
-                return 2;
+                if (event.getIf<sf::Event::MouseButtonReleased>()->button == sf::Mouse::Button::Left)
+                {
+                    return 2;
+                }
             }
         }
     }
+    
     return 0;
 }
 

@@ -188,21 +188,36 @@ void Search::initOpeningTree(){
 
 Move Search::findBestMove(Board& board, int depth) {
     MoveNode currNode = openingTree.root;
+    bool flag = true;
     for (Move& mv : board.moveHistory){
+        
         if (std::find(currNode.children.begin(), currNode.children.end(),mv) != currNode.children.end()){
             for (MoveNode& child : currNode.children){
-                if (child.value == mv){currNode = child; break;}
+                if (child.value == mv){
+                    
+                    currNode = child; 
+                    
+                    break;}
             }
         }
         else{
+            flag = false;
             break;
         }
     }
-    if (currNode.children.size() != 0){
+    if (flag){
         int randomMove = std::rand() % currNode.children.size();
-        return currNode.children[randomMove].value;
+        std::cout << "random: " << randomMove << std::endl;
+        if (currNode.children[randomMove].value.pieceColor == (board.whiteToMove ? white : black)){
+            std::cout << "MOVE FROM TREE: " << currNode.children[randomMove].value.toString() << std::endl;
+            return currNode.children[randomMove].value;
+        }
+        else{
+            std::cout << "BAD MOVE: " << currNode.children[randomMove].value.toString() << std::endl;
+        }
+        
     }
-
+    std::cout << "NO MOVE FROM TREE FOUND" << std::endl;
     clearTT();
     MoveGenerator gen(board);
     int moveCount = 0;
@@ -210,17 +225,18 @@ Move Search::findBestMove(Board& board, int depth) {
 
     int bestScore = INT_MIN;
     Move bestMove;
-
+    std::cout << "MOVES: " << std::endl;
     for (int i = 0; i < moveCount; i++) {
         board.makeMove(moves[0][i]);
         int score = alphaBeta(board, depth - 1, INT_MIN, INT_MAX, !board.whiteToMove);
         board.unmakeMove(moves[0][i]);
-
+        std::cout << moves[0][i].toString() << " scored " << score << std::endl;
         if (score > bestScore) {
             bestScore = score;
             bestMove = moves[0][i];
         }
     }
+    std::cout << "Pick is: " << bestMove.toString()<< std::endl;
     return bestMove;
 }
 

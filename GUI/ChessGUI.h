@@ -1,7 +1,8 @@
 #pragma once
 #include "GUI.h"
+#include "Piece.h"
 #include "../Engine/Board.h"
-
+#include "../Engine/MoveGenerator.h"
 class ChessGUI: public GUI
 {
 public:
@@ -40,7 +41,7 @@ public:
 	Piece selectedPiece;
 
 
-	ChessGUI(GUI_SCREENS screen, Chessboard board);
+	ChessGUI(GUI_SCREENS screen, Board board);
 
 	void drawChessBoard(sf::RenderWindow& window, sf::Vector2i offset);
 
@@ -74,7 +75,6 @@ public:
 
 	void drawSelectedPiecePossibilities(int clickEvent, sf::RenderWindow& window, sf::Vector2i boardOffset);
 
-	bool isValidMove(Move move);
 
 	void handlePromotions(Move& move, sf::RenderWindow& window);
 
